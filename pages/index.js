@@ -1,9 +1,8 @@
-import styles from "../styles/Home.module.css"
-
 export default function Home() {
   return (
     <h1 className="container mx-auto text-3xl font-bold underline">
-      Hello World <buttom className="btn btn-primary">daisyUI Button</buttom>
+      Hello World{" "}
+      <buttom className="btn btn-primary rounded-full">daisyUI Button</buttom>
     </h1>
   )
 }

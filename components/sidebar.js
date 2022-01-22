@@ -1,3 +1,3 @@
 export default function SideBar() {
-  return <div>Sidebar</div>
+  return <div className="min-h-full bg-red-100 p-5">Sidebar</div>
 }
