@@ -8,7 +8,7 @@ export default class MyDocument extends Document {
 
   render() {
     return (
-      <Html lang="en" data-theme="corporate">
+      <Html lang="en">
         <Head />
         <body>
           <Main />

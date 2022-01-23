@@ -4,7 +4,7 @@ import Head from "next/head"
 
 export default function Layout({ children }) {
   return (
-    <div className="flex flex-row min-h-screen min-w-screen">
+    <div className="flex flex-row min-h-screen min-w-screen bg-white text-black">
       <Head>
         <title>Deck</title>
         <meta name="title" content="Deck Admin Dashboard" />
@@ -14,7 +14,7 @@ export default function Layout({ children }) {
         />
       </Head>
       <Sidebar />
-      <div>
+      <div className="w-full">
         <Header />
         <main className="p-5">{children}</main>
       </div>
