@@ -4,7 +4,10 @@ import Head from "next/head"
 
 export default function Layout({ children }) {
   return (
-    <div className="flex flex-row min-h-screen min-w-screen bg-white text-black">
+    <div
+      className="flex flex-row min-h-screen min-w-screen text-black"
+      style={{ backgroundColor: "rgb(241, 245, 249)" }}
+    >
       <Head>
         <title>Deck</title>
         <meta name="title" content="Deck Admin Dashboard" />
