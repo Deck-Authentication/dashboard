@@ -1,7 +1,7 @@
 export default function Header() {
   return (
     <div
-      className="p-5 bg-white flex justify-end"
+      className="px-5 py-4 bg-white flex justify-end"
       style={{ boxShadow: "0 8px 6px -6px #ccc" }}
     >
       <div className="dropdown dropdown-end">
