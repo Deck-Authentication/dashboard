@@ -1,1 +1,3 @@
-export default function Application() {}
+export default function Application() {
+  return <div id="application">Application</div>
+}
