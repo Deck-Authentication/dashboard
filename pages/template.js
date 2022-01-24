@@ -27,8 +27,28 @@ export default function Template({ BACKEND_URL }) {
   if (!data) return <div>Loading...</div>
   return (
     <div id="template">
-      <p>Template length: {data["template"].length}</p>
-      {data["template"].map((template, key) => TemplateCard({ template, key }))}
+      <div className="w-full flex flex-row justify-end">
+        <button className="btn normal-case p-1 hover:opacity-80">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5 mr-1"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+              clipRule="evenodd"
+            />
+          </svg>
+          Add template
+        </button>
+      </div>
+      <section className="mt-5">
+        {data["template"].map((template, key) =>
+          TemplateCard({ template, key })
+        )}
+      </section>
     </div>
   )
 }
@@ -38,7 +58,7 @@ function TemplateCard({ template, key }) {
 
   return (
     <div
-      className="card card-bordered card-compact w-fit mt-2 mr-2 bg-white"
+      className="card card-bordered card-compact w-1/4 mt-2 mr-2 bg-white cursor-pointer hover:shadow-lg"
       key={key}
     >
       <div className="card-body">
