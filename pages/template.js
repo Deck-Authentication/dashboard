@@ -44,7 +44,13 @@ export default function Template({ BACKEND_URL }) {
           Add template
         </button>
       </div>
-      <section className="mt-5">
+      <section className="mt-5 flex flex-row">
+        {data["template"].map((template, key) =>
+          TemplateCard({ template, key })
+        )}
+        {data["template"].map((template, key) =>
+          TemplateCard({ template, key })
+        )}
         {data["template"].map((template, key) =>
           TemplateCard({ template, key })
         )}
@@ -56,9 +62,13 @@ export default function Template({ BACKEND_URL }) {
 function TemplateCard({ template, key }) {
   const { name, member, app } = template
 
+  const borderTopColors = ["blue", "red", "green", "purple", "orange", "yellow"]
+
   return (
     <div
-      className="card card-bordered card-compact w-1/4 mt-2 mr-2 bg-white cursor-pointer hover:shadow-lg"
+      className={`card card-bordered card-compact w-1/4 mt-2 mr-2 bg-white cursor-pointer hover:shadow-lg border-t-8 border-t-${
+        borderTopColors[key % borderTopColors.length]
+      }-300`}
       key={key}
     >
       <div className="card-body">
