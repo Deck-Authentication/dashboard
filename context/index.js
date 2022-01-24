@@ -1,16 +1,17 @@
-import { createContext, useContext } from "react"
+import { createContext, useContext, useState } from "react"
 
 const AppContext = createContext()
 
-export function AppWrapper({ children }) {
-  const sharedState = {}
+export default function AppWrapper(props) {
+  // set context as a state so children components will rerender when context changes
+  const [context, setContext] = useState({})
 
   return (
-    <AppContext.Provider value={sharedState}>{children}</AppContext.Provider>
+    <AppContext.Provider value={[context, setContext]}>
+      {props.children}
+    </AppContext.Provider>
   )
 }
-
-export async function getStaticProps() {}
 
 export function useAppContext() {
   return useContext(AppContext)

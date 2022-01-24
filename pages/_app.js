@@ -1,4 +1,4 @@
-import { AppWrapper } from "../context"
+import AppWrapper from "../context"
 import Layout from "../components/layout"
 import "../styles/globals.css"
 
