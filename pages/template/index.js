@@ -1,3 +1,4 @@
+import Link from "next/link"
 import axios from "axios"
 import useSWR from "swr"
 
@@ -10,7 +11,7 @@ const fetcher = async (url) =>
       throw new Error(err)
     })
 
-export default function Template({ BACKEND_URL }) {
+export default function Templates({ BACKEND_URL }) {
   const { data, error } = useSWR(
     `${BACKEND_URL}/template/get-all-template`,
     fetcher
@@ -54,23 +55,24 @@ export default function Template({ BACKEND_URL }) {
 }
 
 function TemplateCard({ template, key }) {
-  const { name, member, app } = template
+  const { name, member, app, _id } = template
 
   const borderTopColors = ["blue", "red", "green", "purple", "orange", "yellow"]
 
   return (
-    <div
-      className={`card card-bordered card-compact w-1/4 mt-2 mr-2 bg-white cursor-pointer hover:shadow-lg border-t-8 border-t-${
-        borderTopColors[key % borderTopColors.length]
-      }-300`}
-      key={key}
-    >
-      <div className="card-body">
-        <h2 className="card-title">{name}</h2>
-        <p>Number of member: {member.length}</p>
-        <p>Number of app: {Object.keys(app).length}</p>
-      </div>
-    </div>
+    <Link href={`/template/${_id}`} passHref key={key}>
+      <a
+        className={`card card-bordered card-compact w-1/4 mt-2 mr-2 bg-white cursor-pointer hover:shadow-lg border-t-8 border-t-${
+          borderTopColors[key % borderTopColors.length]
+        }-300`}
+      >
+        <div className="card-body">
+          <h2 className="card-title">{name}</h2>
+          <p>Number of member: {member.length}</p>
+          <p>Number of app: {Object.keys(app).length}</p>
+        </div>
+      </a>
+    </Link>
   )
 }
 
