@@ -16,7 +16,6 @@ export default function Layout(props) {
           name="description"
           content="Deck Admin Dashboard for https://withdeck.com- an application to help you invite teammates into multiple cloud applications in one click"
         />
-        <p></p>
       </Head>
       <Sidebar />
       <div className="w-full">
