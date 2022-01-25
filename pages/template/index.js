@@ -48,12 +48,6 @@ export default function Template({ BACKEND_URL }) {
         {data["template"].map((template, key) =>
           TemplateCard({ template, key })
         )}
-        {data["template"].map((template, key) =>
-          TemplateCard({ template, key })
-        )}
-        {data["template"].map((template, key) =>
-          TemplateCard({ template, key })
-        )}
       </section>
     </div>
   )
