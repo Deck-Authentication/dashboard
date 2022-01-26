@@ -7,3 +7,7 @@
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
   padding: 1rem;
 }
+
+.btn {
+  @apply flex flex-row items-center rounded-full bg-indigo-500 text-white p-2;
+}
