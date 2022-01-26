@@ -56,15 +56,17 @@ export default function Templates({ BACKEND_URL }) {
 
 function TemplateCard({ template, key }) {
   const { name, member, app, _id } = template
-
   const borderTopColors = ["blue", "red", "green", "purple", "orange", "yellow"]
+  const cardBorderTopColor = `border-t-${
+    borderTopColors[key % borderTopColors.length]
+  }-300`
+
+  console.log("cardBorderTopColor: ", cardBorderTopColor)
 
   return (
-    <Link href={`/template/${_id}`} passHref key={key}>
+    <Link href={`/template/${_id}`} key={key} passHref>
       <a
-        className={`card card-bordered card-compact w-1/4 mt-2 mr-2 bg-white cursor-pointer hover:shadow-lg border-t-8 border-t-${
-          borderTopColors[key % borderTopColors.length]
-        }-300`}
+        className={`card w-1/4 mt-2 mr-2 bg-white cursor-pointer hover:shadow-lg border-gray-100 border-t-8 ${cardBorderTopColor}`}
       >
         <div className="card-body">
           <h2 className="card-title">{name}</h2>

@@ -1,7 +1,6 @@
 import Sidebar from "./sidebar.js"
 import Header from "./header.js"
 import Head from "next/head"
-import axios from "axios"
 
 export default function Layout(props) {
   return (
@@ -24,14 +23,4 @@ export default function Layout(props) {
       </div>
     </div>
   )
-}
-
-export async function getStaticProps() {
-  const BACKEND_URL = process.env.BACKEND_URL
-
-  return {
-    props: {
-      BACKEND_URL,
-    },
-  }
 }

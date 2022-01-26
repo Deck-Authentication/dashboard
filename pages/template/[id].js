@@ -21,12 +21,19 @@ export default function Template({ id, BACKEND_URL }) {
 
   if (!data) return <div>Loading...</div>
 
-  return <>{JSON.stringify(data)}</>
+  return (
+    <>
+      <h1>{data.name}</h1>
+      <hr style={{ backgroundColor: "black" }} />
+      <div>{JSON.stringify(data)}</div>
+    </>
+  )
 }
 
 const fetcher = async (url) =>
   await axios({ method: "get", url })
-    .then((res) => res.data)
+    // template returned from backend
+    .then((res) => res.data.template)
     .catch((err) => {
       console.error(err)
       throw new Error(err)
