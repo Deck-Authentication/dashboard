@@ -1,5 +1,9 @@
 import useSWR from "swr"
 import axios from "axios"
+import Image from "next/image"
+import Slack_Mark from "../../assets/Slack_Mark.svg"
+import Google_Group from "../../assets/Google_Group.svg"
+import Atlassian from "../../assets/Atlassian.svg"
 
 export default function Template({ id, BACKEND_URL }) {
   const { data, error } = useSWR(
@@ -21,11 +25,40 @@ export default function Template({ id, BACKEND_URL }) {
 
   if (!data) return <div>Loading...</div>
 
+  const {
+    app: { slack, google, atlassian } = {
+      slack: undefined,
+      google: undefined,
+      atlassian: undefined,
+    },
+  } = data
+
   return (
     <>
       <h1 className="text-2xl font-bold">{data.name}</h1>
       <hr className="h-0.5 w-1/4 bg-gray-400" />
-      <div>{JSON.stringify(data)}</div>
+      <div>
+        <h2>Applications</h2>
+        {slack && (
+          <Image src={Slack_Mark} height={100} width={100} alt="Slack logo" />
+        )}
+        {google && (
+          <Image
+            src={Google_Group}
+            height={100}
+            width={100}
+            alt="Google Group logo"
+          />
+        )}
+        {atlassian && (
+          <Image
+            src={Atlassian}
+            height={100}
+            width={200}
+            alt="Atlassian Cloud logo"
+          />
+        )}
+      </div>
     </>
   )
 }
