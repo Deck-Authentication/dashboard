@@ -4,6 +4,7 @@ import Image from "next/image"
 import Slack_Mark from "../../assets/Slack_Mark.svg"
 import Google_Group from "../../assets/Google_Group.svg"
 import Atlassian from "../../assets/Atlassian.svg"
+import { UserIcon } from "@heroicons/react/solid"
 
 export default function Template({ id, BACKEND_URL }) {
   const { data, error } = useSWR(
@@ -32,7 +33,7 @@ export default function Template({ id, BACKEND_URL }) {
       google: undefined,
       atlassian: undefined,
     },
-    member,
+    members,
   } = data
 
   // filter out missing apps
@@ -64,8 +65,11 @@ export default function Template({ id, BACKEND_URL }) {
             .map((app) => AppCard(app))}
         </div>
       </div>
-      <div className="">
-        <h2 className="text-xl mb-2">Members ({member.length})</h2>
+      <div>
+        <h2 className="text-xl mb-2">Members ({members.length})</h2>
+        <div className="flex flex-row space-x-8">
+          {members.map((member, key) => MemberCard({ ...member, key }))}
+        </div>
       </div>
     </>
   )
@@ -80,14 +84,30 @@ const fetcher = async (url) =>
       throw new Error(err)
     })
 
-const AppCard = ({ imgSrc = "", imgAlt = "", name = "" }) => {
+const AppCard = ({ imgSrc = "", imgAlt = "", name = "", key = "" }) => {
   return (
     <a
       href="#"
       className="p-2 border shadow relative rounded-lg hover:bg-gray-200"
+      key={key}
     >
       <div>
         <Image src={imgSrc} height={100} width={200} alt={imgAlt} />
+      </div>
+      <p className="w-full text-center">{name}</p>
+    </a>
+  )
+}
+
+const MemberCard = ({ email, name, referenceId, key }) => {
+  return (
+    <a
+      href="#"
+      className="p-2 border shadow relative rounded-lg hover:bg-gray-200 flex flex-col"
+      alt={name}
+    >
+      <div>
+        <UserIcon style={{ height: 100, width: 200 }} />
       </div>
       <p className="w-full text-center">{name}</p>
     </a>

@@ -55,7 +55,7 @@ export default function Templates({ BACKEND_URL }) {
 }
 
 function TemplateCard({ template, key }) {
-  const { name, member, app, _id } = template
+  const { name, members, app, _id } = template
   const borderTopColors = [
     "border-t-blue-300",
     "border-t-red-300",
@@ -72,7 +72,7 @@ function TemplateCard({ template, key }) {
       <a className={LinkStyle}>
         <div className="card-body">
           <h2 className="card-title">{name}</h2>
-          <p>Number of members: {member.length}</p>
+          <p>Number of members: {members.length}</p>
           <p>Number of apps: {Object.keys(app).length}</p>
         </div>
       </a>
