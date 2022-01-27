@@ -11,10 +11,10 @@ export default function SideBar() {
           <h1 className="text-indigo-400 text-4xl px-3 mb-3 font-bold">Deck</h1>
         </a>
       </Link>
-      <ul className="menu p-4 overflow-y-auto w-full text-base-content">
+      <ul className="p-4 overflow-y-auto w-full text-base-content">
         <li>
           <Link href="/template" passHref={true}>
-            <a>
+            <a className="flex flex-row my-px p-3 rounded-lg hover:bg-slate-700">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-6 w-6 p-0.5 mr-0.5 rounded"
@@ -38,7 +38,7 @@ export default function SideBar() {
         </li>
         <li>
           <Link href="/user" passHref={true}>
-            <a>
+            <a className="flex flex-row my-px p-3 rounded-lg hover:bg-slate-700">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-6 w-6 p-0.5 mr-0.5 rounded"
@@ -61,7 +61,7 @@ export default function SideBar() {
         </li>
         <li>
           <Link href="/application" passHref={true}>
-            <a>
+            <a className="flex flex-row my-px p-3 rounded-lg hover:bg-slate-700">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-6 w-6 p-0.5 mr-0.5 rounded"
