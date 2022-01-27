@@ -72,8 +72,8 @@ function TemplateCard({ template, key }) {
       <a className={LinkStyle}>
         <div className="card-body">
           <h2 className="card-title">{name}</h2>
-          <p>Number of member: {member.length}</p>
-          <p>Number of app: {Object.keys(app).length}</p>
+          <p>Number of members: {member.length}</p>
+          <p>Number of apps: {Object.keys(app).length}</p>
         </div>
       </a>
     </Link>

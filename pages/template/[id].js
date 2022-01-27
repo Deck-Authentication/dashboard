@@ -1,8 +1,5 @@
 import useSWR from "swr"
 import axios from "axios"
-import { Popover } from "@headlessui/react"
-import { ChevronDownIcon } from "@heroicons/react/solid"
-import { Fragment } from "react"
 
 export default function Template({ id, BACKEND_URL }) {
   const { data, error } = useSWR(
@@ -29,7 +26,6 @@ export default function Template({ id, BACKEND_URL }) {
       <h1 className="text-2xl font-bold">{data.name}</h1>
       <hr className="h-0.5 w-1/4 bg-gray-400" />
       <div>{JSON.stringify(data)}</div>
-      <MyPopover />
     </>
   )
 }
@@ -55,21 +51,4 @@ export async function getServerSideProps(context) {
       id,
     },
   }
-}
-
-function MyPopover() {
-  return (
-    <Popover className="relative">
-      <Popover.Button>Solutions</Popover.Button>
-
-      <Popover.Panel className="absolute z-10 bg-white p-2 w-100 rounded-xl">
-        <div className="flex flex-col">
-          <a href="/analytics">Analytics</a>
-          <a href="/engagement">Engagement</a>
-          <a href="/security">Security</a>
-          <a href="/integrations">Integrations</a>
-        </div>
-      </Popover.Panel>
-    </Popover>
-  )
 }
