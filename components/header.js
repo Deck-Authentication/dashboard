@@ -1,11 +1,15 @@
+import { Popover } from "@headlessui/react"
+
 export default function Header() {
+  const HeaderOptions = ["Profile", "Logout"]
+
   return (
     <div
       className="px-5 py-4 bg-white flex justify-end"
       style={{ boxShadow: "0 8px 6px -6px #ccc" }}
     >
-      <div className="dropdown dropdown-end">
-        <div
+      <Popover className="relative">
+        <Popover.Button
           tabIndex="0"
           className="m-1 flex flex-row pl-2 border-l-slate-400 items-end cursor-pointer hover:opacity-70"
           style={{ borderLeftWidth: "0.5px" }}
@@ -23,19 +27,19 @@ export default function Header() {
               clipRule="evenodd"
             />
           </svg>
-        </div>
-        <ul
-          tabIndex="0"
-          className="p-2 shadow menu dropdown-content bg-white rounded-box w-52"
-        >
-          <li className="hover:bg-zinc-100 rounded-box">
-            <a>Profile</a>
-          </li>
-          <li className="hover:bg-zinc-100 rounded-box">
-            <a>Log out</a>
-          </li>
-        </ul>
-      </div>
+        </Popover.Button>
+        <Popover.Panel className="absolute z-10 right-0 mt-2 bg-white border border-gray-300 p-1 w-52 rounded-xl">
+          <ul tabIndex="0" className="p-2 rounded-box w-full">
+            {HeaderOptions.map((option, key) => (
+              <a href="#" key={key}>
+                <li className="hover:bg-zinc-100 rounded-box p-2 rounded-xl">
+                  {option}
+                </li>
+              </a>
+            ))}
+          </ul>
+        </Popover.Panel>
+      </Popover>
     </div>
   )
 }
