@@ -1,9 +1,9 @@
 import useSWR from "swr"
 import axios from "axios"
 import Image from "next/image"
-import Slack_Mark from "../../assets/Slack_Mark.svg"
-import Google_Group from "../../assets/Google_Group.svg"
-import Atlassian from "../../assets/Atlassian.svg"
+import Slack_Mark from "../../../assets/Slack_Mark.svg"
+import Google_Group from "../../../assets/Google_Group.svg"
+import Atlassian from "../../../assets/Atlassian.svg"
 import { UserIcon } from "@heroicons/react/solid"
 
 export default function Template({ id, BACKEND_URL }) {
