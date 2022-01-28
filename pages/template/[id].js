@@ -90,6 +90,7 @@ const AppCard = ({ imgSrc = "", imgAlt = "", name = "", key = "" }) => {
       href="#"
       className="p-2 border shadow relative rounded-lg hover:bg-gray-200"
       key={key}
+      title={name}
     >
       <div>
         <Image src={imgSrc} height={100} width={200} alt={imgAlt} />
@@ -104,7 +105,7 @@ const MemberCard = ({ email, name, referenceId, key }) => {
     <a
       href="#"
       className="p-2 border shadow relative rounded-lg hover:bg-gray-200 flex flex-col"
-      alt={name}
+      title={name}
     >
       <div>
         <UserIcon style={{ height: 100, width: 200 }} />
