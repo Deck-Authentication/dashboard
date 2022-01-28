@@ -12,6 +12,7 @@ const fetcher = async (url) =>
     })
 
 export default function Templates({ BACKEND_URL }) {
+  // fetch all the templates from the database
   const { data, error } = useSWR(
     `${BACKEND_URL}/template/get-all-template`,
     fetcher
@@ -26,6 +27,7 @@ export default function Templates({ BACKEND_URL }) {
       </>
     )
   if (!data) return <div>Loading...</div>
+
   return (
     <div id="template">
       <div className="w-full flex flex-row justify-end">

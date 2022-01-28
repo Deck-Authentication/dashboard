@@ -11,7 +11,6 @@ export default function Template({ id, BACKEND_URL }) {
     `${BACKEND_URL}/template/get-template-by-id/${id}`,
     fetcher
   )
-
   if (error) {
     return (
       <div>
@@ -38,18 +37,26 @@ export default function Template({ id, BACKEND_URL }) {
 
   // filter out missing apps
   const appsData = [
-    { appData: slack, name: "Slack", imgSrc: Slack_Mark, imgAlt: "Slack" },
+    {
+      appData: slack,
+      name: "Slack",
+      imgSrc: Slack_Mark,
+      imgAlt: "Slack",
+      href: `/template/${id}/slack`,
+    },
     {
       appData: google,
       name: "Google Group",
       imgSrc: Google_Group,
       imgAlt: "Google Group",
+      href: `/template/${id}/google_group`,
     },
     {
       appData: atlassian,
       name: "Atlassian Cloud",
       imgSrc: Atlassian,
       imgAlt: "Atlassian",
+      href: `/template/${id}/atlassian`,
     },
   ].filter((app) => app.appData !== undefined)
 
@@ -62,7 +69,7 @@ export default function Template({ id, BACKEND_URL }) {
         <div className="flex flex-row space-x-8">
           {appsData
             .filter((app) => Boolean(app.appData))
-            .map((app) => AppCard(app))}
+            .map((app, key) => AppCard({ ...app, key: key }))}
         </div>
       </div>
       <div>
@@ -84,12 +91,18 @@ const fetcher = async (url) =>
       throw new Error(err)
     })
 
-const AppCard = ({ imgSrc = "", imgAlt = "", name = "", key = "" }) => {
+const AppCard = ({
+  imgSrc = "",
+  imgAlt = "",
+  name = "",
+  key = "",
+  href = "",
+}) => {
   return (
     <a
-      href="#"
+      key={`${name}_${key}`}
+      href={href}
       className="p-2 border shadow relative rounded-lg hover:bg-gray-200"
-      key={key}
       title={name}
     >
       <div>
@@ -103,6 +116,7 @@ const AppCard = ({ imgSrc = "", imgAlt = "", name = "", key = "" }) => {
 const MemberCard = ({ email, name, referenceId, key }) => {
   return (
     <a
+      key={`${name}_${referenceId}_${key}`}
       href="#"
       className="p-2 border shadow relative rounded-lg hover:bg-gray-200 flex flex-col"
       title={name}
