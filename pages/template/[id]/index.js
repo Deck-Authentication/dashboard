@@ -61,10 +61,10 @@ export default function Template({ id, BACKEND_URL }) {
   ].filter((app) => app.appData !== undefined)
 
   return (
-    <div className="w-full h-full p-5 flex flex-col drawer drawer-end justify-items-start">
+    <div className="w-full h-full p-5 flex flex-col relative justify-items-start">
       <h1 className="text-2xl font-bold">{data.name}</h1>
-      {/* <div className="h-0.5 w-1/4 bg-gray-300" /> */}
-      <div className="my-8">
+      <div className="h-0.5 w-1/4 bg-gray-300" />
+      <div className="my-8 drawer-content">
         <h2 className="text-xl mb-2">Applications ({appsData.length})</h2>
         <div className="flex flex-row space-x-8">
           {appsData
@@ -101,7 +101,7 @@ const AppCard = ({
   return (
     <a
       key={`${name}_${key}`}
-      href={href}
+      href="#"
       className="p-2 border shadow relative rounded-lg hover:bg-gray-200"
       title={name}
     >
