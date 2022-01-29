@@ -2,7 +2,7 @@ import Link from "next/link"
 
 export default function SideBar() {
   return (
-    <div
+    <aside
       className="min-h-full bg-zinc-800 text-white py-5 px-3"
       style={{ width: "300px" }}
     >
@@ -83,6 +83,6 @@ export default function SideBar() {
           </Link>
         </li>
       </ul>
-    </div>
+    </aside>
   )
 }

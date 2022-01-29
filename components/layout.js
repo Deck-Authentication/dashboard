@@ -17,9 +17,9 @@ export default function Layout(props) {
         />
       </Head>
       <Sidebar />
-      <div className="w-full">
+      <div className="w-full h-screen flex flex-col">
         <Header />
-        <main className="p-5">{props.children}</main>
+        <section className="w-full flex-auto">{props.children}</section>
       </div>
     </div>
   )

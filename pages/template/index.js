@@ -12,6 +12,7 @@ const fetcher = async (url) =>
     })
 
 export default function Templates({ BACKEND_URL }) {
+  // fetch all the templates from the database
   const { data, error } = useSWR(
     `${BACKEND_URL}/template/get-all-template`,
     fetcher
@@ -26,10 +27,11 @@ export default function Templates({ BACKEND_URL }) {
       </>
     )
   if (!data) return <div>Loading...</div>
+
   return (
-    <div id="template">
+    <div id="template" className="w-full p-5">
       <div className="w-full flex flex-row justify-end">
-        <button className="btn normal-case p-1 hover:opacity-80">
+        <button className="btn normal-case p-1">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-5 w-5 mr-1"
@@ -65,7 +67,7 @@ function TemplateCard({ template, key }) {
     "border-t-yellow-300",
   ]
   const cardBorderTopColor = borderTopColors[key % 6]
-  const LinkStyle = `card w-1/4 mt-2 mr-2 bg-white cursor-pointer hover:shadow-lg border-gray-100 border-t-8 ${cardBorderTopColor}`
+  const LinkStyle = `card p-0 w-1/4 mt-2 mr-2 bg-white cursor-pointer hover:shadow-lg border-gray-100 border-t-8 ${cardBorderTopColor}`
 
   return (
     <Link href={`/template/${_id}`} key={key} passHref>

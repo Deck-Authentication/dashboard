@@ -1,9 +1,9 @@
 import useSWR from "swr"
 import axios from "axios"
 import Image from "next/image"
-import Slack_Mark from "../../assets/Slack_Mark.svg"
-import Google_Group from "../../assets/Google_Group.svg"
-import Atlassian from "../../assets/Atlassian.svg"
+import Slack_Mark from "../../../assets/Slack_Mark.svg"
+import Google_Group from "../../../assets/Google_Group.svg"
+import Atlassian from "../../../assets/Atlassian.svg"
 import { UserIcon } from "@heroicons/react/solid"
 
 export default function Template({ id, BACKEND_URL }) {
@@ -11,7 +11,6 @@ export default function Template({ id, BACKEND_URL }) {
     `${BACKEND_URL}/template/get-template-by-id/${id}`,
     fetcher
   )
-
   if (error) {
     return (
       <div>
@@ -38,31 +37,39 @@ export default function Template({ id, BACKEND_URL }) {
 
   // filter out missing apps
   const appsData = [
-    { appData: slack, name: "Slack", imgSrc: Slack_Mark, imgAlt: "Slack" },
+    {
+      appData: slack,
+      name: "Slack",
+      imgSrc: Slack_Mark,
+      imgAlt: "Slack",
+      href: `/template/${id}/slack`,
+    },
     {
       appData: google,
       name: "Google Group",
       imgSrc: Google_Group,
       imgAlt: "Google Group",
+      href: `/template/${id}/google_group`,
     },
     {
       appData: atlassian,
       name: "Atlassian Cloud",
       imgSrc: Atlassian,
       imgAlt: "Atlassian",
+      href: `/template/${id}/atlassian`,
     },
   ].filter((app) => app.appData !== undefined)
 
   return (
-    <>
+    <div className="w-full h-full p-5 flex flex-col relative justify-items-start">
       <h1 className="text-2xl font-bold">{data.name}</h1>
-      <hr className="h-0.5 w-1/4 bg-gray-400" />
-      <div className="my-8">
+      <div className="h-0.5 w-1/4 bg-gray-300" />
+      <div className="my-8 drawer-content">
         <h2 className="text-xl mb-2">Applications ({appsData.length})</h2>
         <div className="flex flex-row space-x-8">
           {appsData
             .filter((app) => Boolean(app.appData))
-            .map((app) => AppCard(app))}
+            .map((app, key) => AppCard({ ...app, key: key }))}
         </div>
       </div>
       <div>
@@ -71,7 +78,7 @@ export default function Template({ id, BACKEND_URL }) {
           {members.map((member, key) => MemberCard({ ...member, key }))}
         </div>
       </div>
-    </>
+    </div>
   )
 }
 
@@ -84,12 +91,18 @@ const fetcher = async (url) =>
       throw new Error(err)
     })
 
-const AppCard = ({ imgSrc = "", imgAlt = "", name = "", key = "" }) => {
+const AppCard = ({
+  imgSrc = "",
+  imgAlt = "",
+  name = "",
+  key = "",
+  href = "",
+}) => {
   return (
     <a
+      key={`${name}_${key}`}
       href="#"
       className="p-2 border shadow relative rounded-lg hover:bg-gray-200"
-      key={key}
       title={name}
     >
       <div>
@@ -103,6 +116,7 @@ const AppCard = ({ imgSrc = "", imgAlt = "", name = "", key = "" }) => {
 const MemberCard = ({ email, name, referenceId, key }) => {
   return (
     <a
+      key={`${name}_${referenceId}_${key}`}
       href="#"
       className="p-2 border shadow relative rounded-lg hover:bg-gray-200 flex flex-col"
       title={name}
