@@ -61,9 +61,9 @@ export default function Template({ id, BACKEND_URL }) {
   ].filter((app) => app.appData !== undefined)
 
   return (
-    <>
+    <div className="w-full h-full p-5 flex flex-col drawer drawer-end justify-items-start">
       <h1 className="text-2xl font-bold">{data.name}</h1>
-      <hr className="h-0.5 w-1/4 bg-gray-400" />
+      {/* <div className="h-0.5 w-1/4 bg-gray-300" /> */}
       <div className="my-8">
         <h2 className="text-xl mb-2">Applications ({appsData.length})</h2>
         <div className="flex flex-row space-x-8">
@@ -78,7 +78,7 @@ export default function Template({ id, BACKEND_URL }) {
           {members.map((member, key) => MemberCard({ ...member, key }))}
         </div>
       </div>
-    </>
+    </div>
   )
 }
 

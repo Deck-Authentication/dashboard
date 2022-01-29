@@ -29,7 +29,7 @@ export default function Templates({ BACKEND_URL }) {
   if (!data) return <div>Loading...</div>
 
   return (
-    <div id="template">
+    <div id="template" className="w-full p-5">
       <div className="w-full flex flex-row justify-end">
         <button className="btn normal-case p-1">
           <svg

@@ -4,9 +4,9 @@ export default function Header() {
   const HeaderOptions = ["Profile", "Logout"]
 
   return (
-    <div
-      className="px-5 py-4 bg-white flex justify-end"
-      style={{ boxShadow: "0 8px 6px -6px #ccc" }}
+    <header
+      className="flex-none px-5 py-4 bg-white flex justify-end"
+      style={{ boxShadow: "0 8px 6px -6px #ccc", height: "60px" }}
     >
       <Popover className="relative">
         <Popover.Button
@@ -40,6 +40,6 @@ export default function Header() {
           </ul>
         </Popover.Panel>
       </Popover>
-    </div>
+    </header>
   )
 }
