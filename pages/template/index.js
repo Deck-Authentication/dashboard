@@ -67,7 +67,7 @@ function TemplateCard({ template, key }) {
     "border-t-yellow-300",
   ]
   const cardBorderTopColor = borderTopColors[key % 6]
-  const LinkStyle = `card w-1/5 h-36 mt-2 mr-2 bg-white cursor-pointer hover:shadow-lg border-gray-100 border-t-8 ${cardBorderTopColor}`
+  const LinkStyle = `card w-1/5 min-w-max h-36 mt-2 mr-2 bg-white cursor-pointer hover:shadow-lg border-gray-100 border-t-8 ${cardBorderTopColor}`
 
   return (
     <Link href={`/template/${_id}`} key={key} passHref>
