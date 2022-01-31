@@ -1,16 +1,34 @@
 import { CheckCircleIcon, TrashIcon } from "@heroicons/react/solid"
 import { useState } from "react"
 
+// compare two arrays regardless of the order of their elements
+function equalsIgnoreOrder(a = [], b = []) {
+  if (a.length != b.length) return false
+  const uniqueValues = new Set([...a, ...b])
+
+  for (const v of uniqueValues) {
+    const aCount = a.filter((e) => e === v).length
+    const bCount = b.filter((e) => e === v).length
+    if (aCount != bCount) return false
+  }
+
+  return true
+}
+
 // This function renders the sidebar for the Slack app with channels search view and list of channels in the template.
-export function SlackSideBar({ isOpen, setOpen, allConversations, templateConversations }) {
+export function SlackSideBar({ isOpen, setOpen, allConversations, templateConversations, handleSlackChannelsUpdate }) {
   const [addedChannels, setAddedChannels] = useState(templateConversations)
+
+  // if the added channels are the same as the template channels from the database,
+  // we should not update the template and allow the save button to be active
+  const shouldSaveActive = !equalsIgnoreOrder(addedChannels, templateConversations)
 
   const removeChannel = (_channel) => {
     setAddedChannels(addedChannels.filter((channel) => channel !== _channel))
   }
 
   return (
-    <div className="w-full h-full divide-y divide-gray-300 space-y-4">
+    <div className="w-full h-full divide-y divide-gray-300 space-y-4 p-3">
       <section className="w-full h-1/2 flex flex-col">
         <input placeholder="Search channels" className="card w-full mb-4" style={{ padding: "0.5rem" }} />
         <ul className="search-result flex flex-col space-y-2 max-h-80 overflow-y-auto">
@@ -44,8 +62,17 @@ export function SlackSideBar({ isOpen, setOpen, allConversations, templateConver
             </li>
           ))}
         </ul>
-        <div className="btn-group flex flex-row justify-end gap-x-4">
-          <button className="rounded-btn text-white bg-indigo-500">Save</button>
+        <div className="btn-group flex flex-row justify-end gap-x-4 my-4">
+          <button
+            className={`${shouldSaveActive ? "rounded-btn" : "rounded-btn-disabled"} text-white bg-indigo-500`}
+            disabled={!shouldSaveActive}
+            onClick={async (event) => {
+              event.preventDefault
+              await handleSlackChannelsUpdate(addedChannels)
+            }}
+          >
+            Save
+          </button>
           <button onClick={() => setOpen(!isOpen)} className="rounded-btn bg-white border-base-100">
             Cancel
           </button>

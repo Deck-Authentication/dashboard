@@ -1,6 +1,8 @@
 import useSWR from "swr"
 import axios from "axios"
 import Image from "next/image"
+import { ToastContainer, toast } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
 // app logos
 import Slack_Mark from "../../../assets/Slack_Mark.svg"
 import Google_Group from "../../../assets/Google_Group.svg"
@@ -48,11 +50,16 @@ function useSlackConversations(url = "") {
 
 export default function Template({ id, BACKEND_URL }) {
   const [isDrawerOpen, setDrawerOpen] = useState(false)
-  const GET_TEMPLATE_BY_ID_URL = `${BACKEND_URL}/template/get-template-by-id/${id}`
-  const GET_SLACK_CONVERSATIONS_URL = `${BACKEND_URL}/slack/list-conversations`
+  const URL = {
+    GET_TEMPLATE_BY_ID: `${BACKEND_URL}/template/get-template-by-id/${id}`,
+    UPDATE_SLACK_TEMPLATE: `${BACKEND_URL}/template/update-template/app/slack`,
+    GET_SLACK_CONVERSATIONS: `${BACKEND_URL}/slack/list-conversations`,
+    REMOVE_FROM_CHANNELS: `${BACKEND_URL}/slack/remove-from-channels`,
+    INVITE_TO_CHANNELS: `${BACKEND_URL}/slack/invite-to-channel`,
+  }
 
-  const { template, isTemplateLoading, isTemplateError } = useTemplate(GET_TEMPLATE_BY_ID_URL)
-  const { conversations, areConversationsLoading, areConversationsFailed } = useSlackConversations(GET_SLACK_CONVERSATIONS_URL)
+  const { template, isTemplateLoading, isTemplateError } = useTemplate(URL.GET_TEMPLATE_BY_ID)
+  const { conversations, areConversationsLoading, areConversationsFailed } = useSlackConversations(URL.GET_SLACK_CONVERSATIONS)
 
   if (isTemplateError) {
     return (
@@ -113,6 +120,75 @@ export default function Template({ id, BACKEND_URL }) {
     },
   ].filter((app) => app.appData !== undefined)
 
+  const handleSlackChannelsUpdate = async (addedChannels) => {
+    // Remove users from every existing channel in the template.
+    if (slack?.channels?.length && members?.length) {
+      const memberEmails = members.map((member) => member.email)
+
+      await axios({
+        method: "delete",
+        url: URL.REMOVE_FROM_CHANNELS,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: JSON.stringify({ emails: memberEmails, channels: slack.channels }),
+      })
+        .then((response) => {
+          console.log(JSON.stringify(response.data))
+        })
+        .catch(function (error) {
+          console.log("Error at remove users from slack channels: ", error)
+          throw new Error(error)
+        })
+
+      // Update the template with the new channels in MongoDB database.
+      await axios({
+        method: "put",
+        url: URL.UPDATE_SLACK_TEMPLATE,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: JSON.stringify({ id: id, channels: addedChannels }),
+      })
+        .then((response) => {
+          console.log(JSON.stringify(response.data))
+        })
+        .catch(function (error) {
+          console.log("Error at update the template: ", error)
+          throw new Error(error)
+        })
+
+      // Invite users to the new channels in the template.
+      const config = {
+        method: "put",
+        url: URL.INVITE_TO_CHANNELS,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: JSON.stringify({ emails: memberEmails, channels: addedChannels }),
+      }
+
+      await axios(config)
+        .then((response) => {
+          console.log(JSON.stringify(response.data))
+        })
+        .catch(function (error) {
+          console.log("Error at invite users to channels: ", error)
+          throw new Error(error)
+        })
+
+      const toastOption = {
+        autoClose: 4000,
+        type: toast.TYPE.SUCCESS,
+        hideProgressBar: false,
+        position: toast.POSITION.BOTTOM_CENTER,
+        pauseOnHover: true,
+      }
+
+      toast.success("Successfully updated Slack channels.", toastOption)
+    }
+  }
+
   return (
     <div className="w-full h-full flex flex-col relative justify-items-start">
       <section className="p-5">
@@ -152,18 +228,21 @@ export default function Template({ id, BACKEND_URL }) {
           {/*
             We must add something in this area
           */}
-          <div className="flex-none w-128 p-5 flex flex-col">
+          <div className="flex-none w-128 p-5 flex flex-col bg-[#f0f0f0]">
             <SlackSideBar
               {...{
                 isOpen: isDrawerOpen,
                 setOpen: setDrawerOpen,
                 allConversations: conversations,
                 templateConversations: slack.channels,
+                handleSlackChannelsUpdate,
               }}
             />
           </div>
         </aside>
       </Transition>
+      {/* Using React Toastify for message notifications */}
+      <ToastContainer />
     </div>
   )
 }
