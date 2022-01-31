@@ -16,3 +16,11 @@
 .btn {
   @apply flex flex-row items-center rounded-full bg-indigo-500 text-white p-2;
 }
+
+.rounded-btn {
+  @apply rounded-lg border py-1 px-3 hover:shadow-lg;
+}
+
+.badge {
+  @apply rounded-full text-xs font-bold uppercase tracking-wide;
+}

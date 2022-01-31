@@ -152,8 +152,15 @@ export default function Template({ id, BACKEND_URL }) {
           {/*
             We must add something in this area
           */}
-          <div className="flex-none w-96 p-5 flex flex-col">
-            <SlackSideBar {...{ isOpen: isDrawerOpen, setOpen: setDrawerOpen, allConversations: conversations }} />
+          <div className="flex-none w-128 p-5 flex flex-col">
+            <SlackSideBar
+              {...{
+                isOpen: isDrawerOpen,
+                setOpen: setDrawerOpen,
+                allConversations: conversations,
+                templateConversations: slack.channels,
+              }}
+            />
           </div>
         </aside>
       </Transition>
