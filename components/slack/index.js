@@ -24,7 +24,7 @@ export function SlackSideBar({ isOpen, setOpen, allConversations, templateConver
                   isConversationSelected ? "bg-gray-200 cursor-not-allowed" : "cursor-pointer"
                 }`}
                 style={{ padding: "0.5rem" }}
-                onClick={() => setAddedChannels([...addedChannels, conversation.name])}
+                onClick={() => !isConversationSelected && setAddedChannels([...addedChannels, conversation.name])}
                 disabled={isConversationSelected}
               >
                 <p>#{conversation.name}</p>
