@@ -18,6 +18,7 @@ function equalsIgnoreOrder(a = [], b = []) {
 // This function renders the sidebar for the Slack app with channels search view and list of channels in the template.
 export function SlackSideBar({ isOpen, setOpen, allConversations, templateConversations, handleSlackChannelsUpdate }) {
   const [addedChannels, setAddedChannels] = useState(templateConversations)
+  const [isSaveButtonLoading, setSaveButtonLoading] = useState(false)
 
   // if the added channels are the same as the template channels from the database,
   // we should not update the template and allow the save button to be active
@@ -53,7 +54,7 @@ export function SlackSideBar({ isOpen, setOpen, allConversations, templateConver
         </ul>
       </section>
       <section className="w-full flex flex-col pt-2 h-1/2">
-        <h2 className="badge p-1 mt-4 mb-2 w-fit bg-blue-400 text-white">ADDED CHANNELS</h2>
+        <h2 className="defined-badge p-1 mt-4 mb-2 w-fit bg-blue-400 text-white">ADDED CHANNELS</h2>
         <ul className="space-y-2 divide-y divide-neutral-300 h-full overflow-y-auto">
           {addedChannels.map((conversation, key) => (
             <li key={`${conversation}_${key}`} className="flex flex row justify-between" style={{ padding: "0.5rem" }}>
@@ -62,13 +63,17 @@ export function SlackSideBar({ isOpen, setOpen, allConversations, templateConver
             </li>
           ))}
         </ul>
-        <div className="btn-group flex flex-row justify-end gap-x-4 my-4">
+        <div className="defined-btn-group flex flex-row justify-end gap-x-4 my-4">
           <button
-            className={`${shouldSaveActive ? "rounded-btn" : "rounded-btn-disabled"} text-white bg-indigo-500`}
+            className={`btn btn-primary ${
+              shouldSaveActive ? "rounded-btn " : "rounded-btn-disabled text-white cursor-not-allowed"
+            } ${isSaveButtonLoading ? "loading" : ""} bg-indigo-500`}
             disabled={!shouldSaveActive}
             onClick={async (event) => {
               event.preventDefault
+              setSaveButtonLoading(true)
               await handleSlackChannelsUpdate(addedChannels)
+              setSaveButtonLoading(false)
             }}
           >
             Save
