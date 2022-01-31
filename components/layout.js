@@ -1,4 +1,4 @@
-import Sidebar from "./sidebar.js"
+import Menu from "./menu.js"
 import Header from "./header.js"
 import Head from "next/head"
 
@@ -13,7 +13,7 @@ export default function Layout(props) {
           content="Deck Admin Dashboard for https://withdeck.com- an application to help you invite teammates into multiple cloud applications in one click"
         />
       </Head>
-      <Sidebar />
+      <Menu />
       <div className="w-full h-screen flex flex-col">
         <Header />
         <section className="w-full flex-auto">{props.children}</section>

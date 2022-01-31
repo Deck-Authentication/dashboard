@@ -1,11 +1,8 @@
 import Link from "next/link"
 
-export default function SideBar() {
+export default function Menu() {
   return (
-    <aside
-      className="min-h-full bg-zinc-800 text-white py-5 px-3"
-      style={{ width: "300px" }}
-    >
+    <aside className="min-h-full bg-zinc-800 text-white py-5 px-3" style={{ width: "300px" }}>
       <Link href="/" passHref={true}>
         <a>
           <h1 className="text-indigo-400 text-4xl px-3 mb-3 font-bold">Deck</h1>
@@ -49,11 +46,7 @@ export default function SideBar() {
                   background: "linear-gradient(to right, #ff5f6d, #ffc371)",
                 }}
               >
-                <path
-                  fillRule="evenodd"
-                  d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                  clipRule="evenodd"
-                />
+                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
               </svg>
               User
             </a>

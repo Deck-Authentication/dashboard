@@ -10,7 +10,8 @@ import Atlassian from "../../../assets/Atlassian.svg"
 import { UserIcon } from "@heroicons/react/solid"
 import { useState } from "react"
 import { Transition } from "@headlessui/react"
-import { SlackSideBar } from "../../../components/slack"
+import { SlackSidebar } from "../../../components/slack"
+import { GoogleGroupSidebar } from "../../../components/google-group"
 
 function useTemplate(url = "") {
   const fetcher = async (url) =>
@@ -48,18 +49,45 @@ function useSlackConversations(url = "") {
   }
 }
 
+function useGoogleGroups(url = "") {
+  const fetcher = async (url) =>
+    await axios({ method: "get", url })
+      // google groups returned from backend
+      .then((res) => res.data.groups)
+      .catch((err) => {
+        console.error(err)
+        throw new Error(err)
+      })
+  const { data, error } = useSWR(url, fetcher)
+
+  return {
+    groups: data,
+    areGroupsLoading: !data,
+    areGroupsFailed: error,
+  }
+}
+
 export default function Template({ id, BACKEND_URL }) {
-  const [isDrawerOpen, setDrawerOpen] = useState(false)
+  const [isSlackDrawerOpen, setSlackDrawerOpen] = useState(false)
+  const [isGoogleDrawerOpen, setGoogleDrawerOpen] = useState(false)
+  const [isAtlassianDrawerOpen, setAtlassianDrawerOpen] = useState(false)
+
   const URL = {
     GET_TEMPLATE_BY_ID: `${BACKEND_URL}/template/get-template-by-id/${id}`,
+    // Slack
     UPDATE_SLACK_TEMPLATE: `${BACKEND_URL}/template/update-template/app/slack`,
     GET_SLACK_CONVERSATIONS: `${BACKEND_URL}/slack/list-conversations`,
     REMOVE_FROM_CHANNELS: `${BACKEND_URL}/slack/remove-from-channels`,
     INVITE_TO_CHANNELS: `${BACKEND_URL}/slack/invite-to-channel`,
+    // Google Group
+    GET_GOOGLE_GROUPS: `${BACKEND_URL}/google/group/list-all-groups`,
+    REMOVE_FROM_GOOGLE_GROUPS: `${BACKEND_URL}/google/group/remove-members`,
+    ADD_TO_GOOGLE_GROUPS: `${BACKEND_URL}/google/group/add-members`,
   }
 
   const { template, isTemplateLoading, isTemplateError } = useTemplate(URL.GET_TEMPLATE_BY_ID)
   const { conversations, areConversationsLoading, areConversationsFailed } = useSlackConversations(URL.GET_SLACK_CONVERSATIONS)
+  const { groups, areGroupsLoading, areGroupsFailed } = useGoogleGroups(URL.GET_GOOGLE_GROUPS)
 
   if (isTemplateError) {
     return (
@@ -85,6 +113,18 @@ export default function Template({ id, BACKEND_URL }) {
     )
   } else if (areConversationsLoading) return <div>Loading...</div>
 
+  if (areGroupsFailed) {
+    return (
+      <div>
+        Error loading Google Groups. Contact us at{" "}
+        <a href="mailto:peter@withdeck.com" className="underline text-blue-800">
+          peter@withdeck.com
+        </a>{" "}
+        and we will resolve the issue as soon as possible.
+      </div>
+    )
+  } else if (areGroupsLoading) return <div>Loading...</div>
+
   // fetch all apps and template's members list from the data received from backend
   const {
     app: { slack, google, atlassian } = {
@@ -96,50 +136,52 @@ export default function Template({ id, BACKEND_URL }) {
   } = template
 
   // filter out missing apps
-  const appsData = [
+  const appCardsData = [
     {
       appData: slack,
       name: "Slack",
       imgSrc: Slack_Mark,
       imgAlt: "Slack",
-      href: `/template/${id}/slack`,
+      handleDrawer: () => setSlackDrawerOpen(!isSlackDrawerOpen),
     },
     {
       appData: google,
       name: "Google Group",
       imgSrc: Google_Group,
       imgAlt: "Google Group",
-      href: `/template/${id}/google_group`,
+      handleDrawer: () => setGoogleDrawerOpen(!isGoogleDrawerOpen),
     },
     {
       appData: atlassian,
       name: "Atlassian Cloud",
       imgSrc: Atlassian,
       imgAlt: "Atlassian",
-      href: `/template/${id}/atlassian`,
+      handleDrawer: () => setAtlassianDrawerOpen(!isAtlassianDrawerOpen),
     },
   ].filter((app) => app.appData !== undefined)
 
   const handleSlackChannelsUpdate = async (addedChannels) => {
-    // Remove users from every existing channel in the template.
+    // This code has a bug in edge cases.
     if (slack?.channels?.length && members?.length) {
       const memberEmails = members.map((member) => member.email)
 
-      await axios({
-        method: "delete",
-        url: URL.REMOVE_FROM_CHANNELS,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        data: JSON.stringify({ emails: memberEmails, channels: slack.channels }),
-      })
-        .then((response) => {
-          console.log(JSON.stringify(response.data))
+      // Remove users from every existing channel in the template.
+      memberEmails.length &&
+        (await axios({
+          method: "delete",
+          url: URL.REMOVE_FROM_CHANNELS,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          data: JSON.stringify({ emails: memberEmails, channels: slack.channels }),
         })
-        .catch(function (error) {
-          console.log("Error at remove users from slack channels: ", error)
-          throw new Error(error)
-        })
+          .then((response) => {
+            console.log(JSON.stringify(response.data))
+          })
+          .catch(function (error) {
+            console.log("Error at remove users from slack channels: ", error)
+            throw new Error(error)
+          }))
 
       // Update the template with the new channels in MongoDB database.
       await axios({
@@ -189,21 +231,22 @@ export default function Template({ id, BACKEND_URL }) {
     }
   }
 
+  const handleGoogleGroupsUpdate = async (addedGroups) => {}
+
   return (
     <div className="w-full h-full flex flex-col relative justify-items-start">
       <section className="p-5">
         <h1 className="text-2xl font-bold">{template.name}</h1>
         <div className="h-0.5 w-1/4 bg-gray-300" />
         <div className="my-8 drawer-content">
-          <h2 className="text-xl mb-2">Applications ({appsData.length})</h2>
+          <h2 className="text-xl mb-2">Applications ({appCardsData.length})</h2>
           <div className="flex flex-row space-x-8">
-            {appsData
+            {appCardsData
               .filter((app) => Boolean(app.appData))
               .map((app, key) =>
                 AppCard({
                   ...app,
                   key: key,
-                  handleDrawer: () => setDrawerOpen(!isDrawerOpen),
                 })
               )}
           </div>
@@ -215,7 +258,7 @@ export default function Template({ id, BACKEND_URL }) {
       </section>
       {/* Sidebars appear after clicking one of the card in the app cards list */}
       <Transition
-        show={isDrawerOpen}
+        show={isSlackDrawerOpen}
         enter="transition-opacity duration-75"
         enterFrom="opacity-0"
         enterTo="opacity-100"
@@ -224,18 +267,45 @@ export default function Template({ id, BACKEND_URL }) {
         leaveTo="opacity-0"
       >
         <aside className="absolute inset-0 w-full h-full flex flex-row">
-          <div className="flex-auto bg-zinc-300/80" onClick={() => setDrawerOpen(!isDrawerOpen)}></div>
+          <div className="flex-auto bg-zinc-300/80" onClick={() => setSlackDrawerOpen(!isSlackDrawerOpen)}></div>
           {/*
             We must add something in this area
           */}
           <div className="flex-none w-128 p-5 flex flex-col bg-[#f0f0f0]">
-            <SlackSideBar
+            <SlackSidebar
               {...{
-                isOpen: isDrawerOpen,
-                setOpen: setDrawerOpen,
+                isOpen: isSlackDrawerOpen,
+                setOpen: setSlackDrawerOpen,
                 allConversations: conversations,
                 templateConversations: slack.channels,
                 handleSlackChannelsUpdate,
+              }}
+            />
+          </div>
+        </aside>
+      </Transition>
+      <Transition
+        show={isGoogleDrawerOpen}
+        enter="transition-opacity duration-75"
+        enterFrom="opacity-0"
+        enterTo="opacity-100"
+        leave="transition-opacity duration-150"
+        leaveFrom="opacity-100"
+        leaveTo="opacity-0"
+      >
+        <aside className="absolute inset-0 w-full h-full flex flex-row">
+          <div className="flex-auto bg-zinc-300/80" onClick={() => setGoogleDrawerOpen(!isGoogleDrawerOpen)}></div>
+          {/*
+            We must add something in this area
+          */}
+          <div className="flex-none w-128 p-5 flex flex-col bg-[#f0f0f0]">
+            <GoogleGroupSidebar
+              {...{
+                isOpen: isGoogleDrawerOpen,
+                setOpen: setGoogleDrawerOpen,
+                allGroups: groups,
+                templateGroups: google.groupKeys,
+                handleGroupsUpdate: () => {},
               }}
             />
           </div>
@@ -247,7 +317,7 @@ export default function Template({ id, BACKEND_URL }) {
   )
 }
 
-const AppCard = ({ imgSrc = "", imgAlt = "", name = "", key = "", handleDrawer = () => {}, href = "" }) => {
+const AppCard = ({ imgSrc = "", imgAlt = "", name = "", key = "", handleDrawer = () => {} }) => {
   return (
     <button
       key={`${name}_${key}`}
