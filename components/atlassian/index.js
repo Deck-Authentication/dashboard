@@ -16,7 +16,7 @@ function equalsIgnoreOrder(a = [], b = []) {
 }
 
 // This function renders the sidebar for the Google Group app with groupp search view and list of groups in the template.
-export function GoogleGroupSidebar({ isOpen, setOpen, allGroups, templateGroups, handleGroupsUpdate }) {
+export function AtlassianSidebar({ isOpen, setOpen, allGroups, templateGroups, handleGroupsUpdate }) {
   const [addedGroups, setAddedGroups] = useState(templateGroups)
   const [isSaveButtonLoading, setSaveButtonLoading] = useState(false)
 
@@ -35,21 +35,19 @@ export function GoogleGroupSidebar({ isOpen, setOpen, allGroups, templateGroups,
         <input placeholder="Search groups" className="card w-full mb-4" style={{ padding: "0.5rem" }} />
         <ul className="search-result flex flex-col space-y-2 max-h-80 overflow-y-auto">
           {allGroups.map((group, key) => {
-            const isGroupSelected = addedGroups.includes(group.email)
+            const isGroupSelected = addedGroups.includes(group.name)
 
             return (
               <li
-                key={`${group.id}_${key}`}
+                key={`${group.groupId}_${key}`}
                 className={`flex flex-row justify-between rounded-lg shadow-lg hover:bg-zinc-200 ${
                   isGroupSelected ? "bg-gray-200 cursor-not-allowed" : "cursor-pointer"
                 }`}
                 style={{ padding: "0.5rem" }}
-                onClick={() => !isGroupSelected && setAddedGroups([...addedGroups, group.email])}
+                onClick={() => !isGroupSelected && setAddedGroups([...addedGroups, group.name])}
                 disabled={isGroupSelected}
               >
-                <p>
-                  #{group.name} ({group.email})
-                </p>
+                <p>{group.name}</p>
                 {isGroupSelected && <CheckCircleIcon className="h-5 w-5 text-green-400" />}
               </li>
             )
@@ -57,11 +55,11 @@ export function GoogleGroupSidebar({ isOpen, setOpen, allGroups, templateGroups,
         </ul>
       </section>
       <section className="w-full flex flex-col pt-2 h-1/2">
-        <h2 className="defined-badge p-1 mt-4 mb-2 w-fit bg-green-400 text-white">ADDED GROUPS</h2>
+        <h2 className="defined-badge p-1 mt-4 mb-2 w-fit bg-indigo-400 text-white">ADDED GROUPS</h2>
         <ul className="space-y-2 divide-y divide-neutral-300 h-full overflow-y-auto">
           {addedGroups.map((group, key) => (
             <li key={`${group}_${key}`} className="flex flex row justify-between" style={{ padding: "0.5rem" }}>
-              <p>#{group}</p>
+              <p>{group}</p>
               <TrashIcon className="h-5 w-5 hover:text-red-400 cursor-pointer" onClick={() => removeGroup(group)} />
             </li>
           ))}
