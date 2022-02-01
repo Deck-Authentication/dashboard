@@ -81,6 +81,7 @@ export default function Template({ id, BACKEND_URL }) {
     INVITE_TO_CHANNELS: `${BACKEND_URL}/slack/invite-to-channel`,
     // Google Group
     GET_GOOGLE_GROUPS: `${BACKEND_URL}/google/group/list-all-groups`,
+    UPDATE_GOOGLE_GROUP_TEMPLATE: `${BACKEND_URL}/template/update-template/app/google`,
     REMOVE_FROM_GOOGLE_GROUPS: `${BACKEND_URL}/google/group/remove-members`,
     ADD_TO_GOOGLE_GROUPS: `${BACKEND_URL}/google/group/add-members`,
   }
@@ -192,10 +193,8 @@ export default function Template({ id, BACKEND_URL }) {
         },
         data: JSON.stringify({ id: id, channels: addedChannels }),
       })
-        .then((response) => {
-          console.log(JSON.stringify(response.data))
-        })
-        .catch(function (error) {
+        .then((response) => console.log(JSON.stringify(response.data)))
+        .catch((error) => {
           console.log("Error at update the template: ", error)
           throw new Error(error)
         })
@@ -229,9 +228,72 @@ export default function Template({ id, BACKEND_URL }) {
 
       toast.success("Successfully updated Slack channels.", toastOption)
     }
+
+    return
   }
 
-  const handleGoogleGroupsUpdate = async (addedGroups) => {}
+  const handleGoogleGroupsUpdate = async (addedGroups) => {
+    if (google?.groupKeys?.length && members?.length) {
+      const memberEmails = members.map((member) => member.email)
+
+      // Remove users from every existing google group in the template.
+      memberEmails.length &&
+        (await axios({
+          method: "delete",
+          url: URL.REMOVE_FROM_GOOGLE_GROUPS,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          data: JSON.stringify({ members: memberEmails, groupKeys: google.groupKeys }),
+        })
+          .then((response) => {
+            console.log(JSON.stringify(response.data))
+            return response.data
+          })
+          .catch((error) => {
+            console.log("Error at remove users from google groups: ", error)
+            throw new Error(error)
+          }))
+
+      // Update the template with the new google groups in MongoDB database.
+      await axios({
+        method: "put",
+        url: URL.UPDATE_GOOGLE_GROUP_TEMPLATE,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: JSON.stringify({ id: id, groupKeys: addedGroups }),
+      })
+        .then((response) => console.log(JSON.stringify(response.data)))
+        .catch((error) => console.log(error))
+
+      const googleGroupMembers = memberEmails.map((email) => ({ email, role: "MEMBER" }))
+
+      // Invite users to the new google groups in the template.
+      await axios({
+        method: "post",
+        url: URL.ADD_TO_GOOGLE_GROUPS,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: JSON.stringify({ groupKeys: addedGroups, members: googleGroupMembers }),
+      })
+        .then((response) => console.log(JSON.stringify(response.data)))
+        .catch((error) => console.log(error))
+
+      const toastOption = {
+        autoClose: 4000,
+        type: toast.TYPE.SUCCESS,
+        hideProgressBar: false,
+        position: toast.POSITION.BOTTOM_CENTER,
+        pauseOnHover: true,
+      }
+
+      toast.success("Successfully updated Google groups.", toastOption)
+    }
+
+    return
+  }
 
   return (
     <div className="w-full h-full flex flex-col relative justify-items-start">
@@ -305,7 +367,7 @@ export default function Template({ id, BACKEND_URL }) {
                 setOpen: setGoogleDrawerOpen,
                 allGroups: groups,
                 templateGroups: google.groupKeys,
-                handleGroupsUpdate: () => {},
+                handleGroupsUpdate: handleGoogleGroupsUpdate,
               }}
             />
           </div>

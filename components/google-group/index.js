@@ -1,5 +1,6 @@
 import { CheckCircleIcon, TrashIcon } from "@heroicons/react/solid"
 import { useState } from "react"
+import { ToastContainer, toast } from "react-toastify"
 
 // compare two arrays regardless of the order of their elements
 function equalsIgnoreOrder(a = [], b = []) {
@@ -22,6 +23,7 @@ export function GoogleGroupSidebar({ isOpen, setOpen, allGroups, templateGroups,
 
   // if the added channels are the same as the template channels from the database,
   // we should not update the template and allow the save button to be active
+  // this line contains a bug, must fix later
   const shouldSaveActive = !equalsIgnoreOrder(addedGroups, templateGroups)
 
   const removeGroup = (_group) => {
@@ -70,7 +72,7 @@ export function GoogleGroupSidebar({ isOpen, setOpen, allGroups, templateGroups,
             className={`btn btn-primary ${
               shouldSaveActive ? "rounded-btn " : "rounded-btn-disabled text-white cursor-not-allowed"
             } ${isSaveButtonLoading ? "loading" : ""} bg-indigo-500`}
-            disabled={!shouldSaveActive}
+            // disabled={!shouldSaveActive}
             onClick={async (event) => {
               event.preventDefault
               setSaveButtonLoading(true)
@@ -84,6 +86,7 @@ export function GoogleGroupSidebar({ isOpen, setOpen, allGroups, templateGroups,
             Cancel
           </button>
         </div>
+        <ToastContainer />
       </section>
     </div>
   )
