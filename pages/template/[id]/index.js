@@ -12,6 +12,7 @@ import { useState } from "react"
 import { Transition } from "@headlessui/react"
 import { SlackSidebar } from "../../../components/slack"
 import { GoogleGroupSidebar } from "../../../components/google-group"
+import { AtlassianSidebar } from "../../../components/atlassian"
 
 function useTemplate(url = "") {
   const fetcher = async (url) =>
@@ -67,6 +68,24 @@ function useGoogleGroups(url = "") {
   }
 }
 
+function useAtlassianGroups(url = "") {
+  const fetcher = async (url) =>
+    await axios({ method: "get", url })
+      // google groups returned from backend
+      .then((res) => res.data.groups)
+      .catch((err) => {
+        console.error(err)
+        throw new Error(err)
+      })
+  const { data, error } = useSWR(url, fetcher)
+
+  return {
+    atlassianGroups: data,
+    areGroupsLoading: !data,
+    areGroupsFailed: error,
+  }
+}
+
 export default function Template({ id, BACKEND_URL }) {
   const [isSlackDrawerOpen, setSlackDrawerOpen] = useState(false)
   const [isGoogleDrawerOpen, setGoogleDrawerOpen] = useState(false)
@@ -84,11 +103,17 @@ export default function Template({ id, BACKEND_URL }) {
     UPDATE_GOOGLE_GROUP_TEMPLATE: `${BACKEND_URL}/template/update-template/app/google`,
     REMOVE_FROM_GOOGLE_GROUPS: `${BACKEND_URL}/google/group/remove-members`,
     ADD_TO_GOOGLE_GROUPS: `${BACKEND_URL}/google/group/add-members`,
+    // Atlassian Cloud
+    UPDATE_ATLASSIAN_TEMPLATE: `${BACKEND_URL}/template/update-template/app/atlassian`,
+    GET_ATLASSIAN_GROUPS: `${BACKEND_URL}/atlassian/jira/get-all-groups`,
+    REMOVE_FROM_ATLASSIAN_GROUPS: `${BACKEND_URL}/atlassian/jira/remove-from-team`,
+    INVITE_TO_ATLASSIAN_GROUPS: `${BACKEND_URL}/atlassian/jira/invite-to-team`,
   }
 
   const { template, isTemplateLoading, isTemplateError } = useTemplate(URL.GET_TEMPLATE_BY_ID)
   const { conversations, areConversationsLoading, areConversationsFailed } = useSlackConversations(URL.GET_SLACK_CONVERSATIONS)
   const { groups, areGroupsLoading, areGroupsFailed } = useGoogleGroups(URL.GET_GOOGLE_GROUPS)
+  const { atlassianGroups, areAtlassianGroupsLoading, areAtlassianGroupsFailed } = useAtlassianGroups(URL.GET_ATLASSIAN_GROUPS)
 
   if (isTemplateError) {
     return (
@@ -125,6 +150,18 @@ export default function Template({ id, BACKEND_URL }) {
       </div>
     )
   } else if (areGroupsLoading) return <div>Loading...</div>
+
+  if (areAtlassianGroupsFailed) {
+    return (
+      <div>
+        Error loading Atlassian groups. Contact us at{" "}
+        <a href="mailto:peter@withdeck.com" className="underline text-blue-800">
+          peter@withdeck.com
+        </a>{" "}
+        and we will resolve the issue as soon as possible.
+      </div>
+    )
+  } else if (areAtlassianGroupsLoading) return <div>Loading...</div>
 
   // fetch all apps and template's members list from the data received from backend
   const {
@@ -295,6 +332,76 @@ export default function Template({ id, BACKEND_URL }) {
     return
   }
 
+  const handleAtlassianGroupsUpdate = async (addedGroups) => {
+    if (atlassian?.groupnames?.length && members?.length) {
+      const memberEmails = members.map((member) => member.email)
+      // Remove users from every existing atlassian jira group in the template.
+      memberEmails.length &&
+        (await axios({
+          method: "delete",
+          url: URL.REMOVE_FROM_ATLASSIAN_GROUPS,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          data: JSON.stringify({ groupnames: atlassian.groupnames, emails: memberEmails }),
+        })
+          .then((response) => {
+            console.log(JSON.stringify(response.data))
+            return response.data
+          })
+          .catch((error) => {
+            console.log(error)
+            throw new Error(error)
+          }))
+
+      // Update the template with the new Atlassian groups in MongoDB database.
+      await axios({
+        method: "put",
+        url: URL.UPDATE_ATLASSIAN_TEMPLATE,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: JSON.stringify({ id: id, groupnames: addedGroups }),
+      })
+        .then((response) => {
+          console.log(JSON.stringify(response.data))
+          return response.data
+        })
+        .catch((error) => {
+          console.log(error)
+          throw new Error(error)
+        })
+
+      // Invite users to the new Atlassian groups in the template.
+      await axios({
+        method: "post",
+        url: URL.INVITE_TO_ATLASSIAN_GROUPS,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: JSON.stringify({ emails: memberEmails, groupnames: addedGroups }),
+      })
+        .then((response) => {
+          console.log(JSON.stringify(response.data))
+          return response.data
+        })
+        .catch((error) => {
+          console.log(error)
+          throw new Error(error)
+        })
+
+      const toastOption = {
+        autoClose: 4000,
+        type: toast.TYPE.SUCCESS,
+        hideProgressBar: false,
+        position: toast.POSITION.BOTTOM_CENTER,
+        pauseOnHover: true,
+      }
+
+      toast.success("Successfully updated Atlassian groups.", toastOption)
+    }
+  }
+
   return (
     <div className="w-full h-full flex flex-col relative justify-items-start">
       <section className="p-5">
@@ -368,6 +475,33 @@ export default function Template({ id, BACKEND_URL }) {
                 allGroups: groups,
                 templateGroups: google.groupKeys,
                 handleGroupsUpdate: handleGoogleGroupsUpdate,
+              }}
+            />
+          </div>
+        </aside>
+      </Transition>
+      <Transition
+        show={isAtlassianDrawerOpen}
+        enter="transition-opacity duration-75"
+        enterFrom="opacity-0"
+        enterTo="opacity-100"
+        leave="transition-opacity duration-150"
+        leaveFrom="opacity-100"
+        leaveTo="opacity-0"
+      >
+        <aside className="absolute inset-0 w-full h-full flex flex-row">
+          <div className="flex-auto bg-zinc-300/80" onClick={() => setAtlassianDrawerOpen(!isAtlassianDrawerOpen)}></div>
+          {/*
+            We must add something in this area
+          */}
+          <div className="flex-none w-128 p-5 flex flex-col bg-[#f0f0f0]">
+            <AtlassianSidebar
+              {...{
+                isOpen: isAtlassianDrawerOpen,
+                setOpen: setAtlassianDrawerOpen,
+                allGroups: atlassianGroups,
+                templateGroups: atlassian.groupnames,
+                handleGroupsUpdate: handleAtlassianGroupsUpdate,
               }}
             />
           </div>
