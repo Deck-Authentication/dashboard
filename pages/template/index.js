@@ -1,6 +1,8 @@
 import Link from "next/link"
+import Router from "next/router"
 import axios from "axios"
 import useSWR from "swr"
+import { useState } from "react"
 
 const fetcher = async (url) =>
   await axios
@@ -12,8 +14,37 @@ const fetcher = async (url) =>
     })
 
 export default function Templates({ BACKEND_URL }) {
+  const URL = {
+    CREATE_TEMPLATE: `${BACKEND_URL}/template/create-template`,
+  }
+
+  const [newTemplateName, setNewTemplateName] = useState("")
+  const [isCreateButtonLoading, setCreateButtonLoading] = useState(false)
   // fetch all the templates from the database
   const { data, error } = useSWR(`${BACKEND_URL}/template/get-all-template`, fetcher)
+
+  const createTemplate = async (newTemplate) => {
+    const config = {
+      method: "post",
+      url: URL.CREATE_TEMPLATE,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: JSON.stringify({ name: newTemplate }),
+    }
+
+    await axios(config)
+      .then((response) => {
+        const id = response.data.template._id.toString()
+
+        console.log(JSON.stringify(response.data))
+        Router.push(`/template/${id}`)
+      })
+      .catch((error) => {
+        console.log(error)
+        throw new Error(error)
+      })
+  }
 
   if (error)
     return (
@@ -27,7 +58,7 @@ export default function Templates({ BACKEND_URL }) {
   return (
     <div id="template" className="w-full p-5">
       <div className="w-full flex flex-row justify-end">
-        <button className="pill-btn normal-case p-1 hover:opacity-90">
+        <label htmlFor="add-template-modal" className="modal-button pill-btn cursor-pointer normal-case p-1 hover:opacity-90">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
             <path
               fillRule="evenodd"
@@ -36,9 +67,38 @@ export default function Templates({ BACKEND_URL }) {
             />
           </svg>
           Add template
-        </button>
+        </label>
+        <input type="checkbox" id="add-template-modal" className="modal-toggle" />
+        <div className="modal">
+          <div className="modal-box bg-white p-10">
+            <input
+              type="text"
+              placeholder="Template name"
+              className="text-xl w-full rounded-2xl p-2 border border-blue-300"
+              value={newTemplateName}
+              onChange={(event) => setNewTemplateName(event.target.value)}
+            />
+            <div className="modal-action">
+              <label
+                htmlFor="add-template-modal"
+                className={`btn btn-primary ${isCreateButtonLoading ? "loading" : ""}`}
+                onClick={async (event) => {
+                  event.preventDefault()
+                  setCreateButtonLoading(true)
+                  await createTemplate(newTemplateName)
+                  setCreateButtonLoading(false)
+                }}
+              >
+                Create
+              </label>
+              <label htmlFor="add-template-modal" className="btn">
+                Cancel
+              </label>
+            </div>
+          </div>
+        </div>
       </div>
-      <section className="mt-5 flex flex-row">
+      <section className="mt-5 flex flex-row gap-4">
         {data["template"].map((template, key) => TemplateCard({ template, key }))}
       </section>
     </div>
