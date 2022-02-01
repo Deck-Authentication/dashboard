@@ -200,27 +200,28 @@ export default function Template({ id, BACKEND_URL }) {
 
   const handleSlackChannelsUpdate = async (addedChannels) => {
     // This code has a bug in edge cases.
-    if (slack?.channels?.length && members?.length) {
-      const memberEmails = members.map((member) => member.email)
+    const memberEmails = members.map((member) => member.email)
 
-      // Remove users from every existing channel in the template.
-      memberEmails.length &&
-        (await axios({
-          method: "delete",
-          url: URL.REMOVE_FROM_CHANNELS,
-          headers: {
-            "Content-Type": "application/json",
-          },
-          data: JSON.stringify({ emails: memberEmails, channels: slack.channels }),
+    // Remove users from every existing channel in the template.
+    memberEmails.length &&
+      slack?.channels?.length &&
+      (await axios({
+        method: "delete",
+        url: URL.REMOVE_FROM_CHANNELS,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: JSON.stringify({ emails: memberEmails, channels: slack.channels }),
+      })
+        .then((response) => {
+          console.log(JSON.stringify(response.data))
         })
-          .then((response) => {
-            console.log(JSON.stringify(response.data))
-          })
-          .catch(function (error) {
-            console.log("Error at remove users from slack channels: ", error)
-            throw new Error(error)
-          }))
+        .catch(function (error) {
+          console.log("Error at remove users from slack channels: ", error)
+          throw new Error(error)
+        }))
 
+    if (addedChannels.length) {
       // Update the template with the new channels in MongoDB database.
       await axios({
         method: "put",
@@ -237,61 +238,64 @@ export default function Template({ id, BACKEND_URL }) {
         })
 
       // Invite users to the new channels in the template.
-      const config = {
-        method: "put",
-        url: URL.INVITE_TO_CHANNELS,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        data: JSON.stringify({ emails: memberEmails, channels: addedChannels }),
+      if (memberEmails.length) {
+        const config = {
+          method: "put",
+          url: URL.INVITE_TO_CHANNELS,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          data: JSON.stringify({ emails: memberEmails, channels: addedChannels }),
+        }
+
+        await axios(config)
+          .then((response) => {
+            console.log(JSON.stringify(response.data))
+          })
+          .catch(function (error) {
+            console.log("Error at invite users to channels: ", error)
+            throw new Error(error)
+          })
       }
-
-      await axios(config)
-        .then((response) => {
-          console.log(JSON.stringify(response.data))
-        })
-        .catch(function (error) {
-          console.log("Error at invite users to channels: ", error)
-          throw new Error(error)
-        })
-
-      const toastOption = {
-        autoClose: 4000,
-        type: toast.TYPE.SUCCESS,
-        hideProgressBar: false,
-        position: toast.POSITION.BOTTOM_CENTER,
-        pauseOnHover: true,
-      }
-
-      toast.success("Successfully updated Slack channels.", toastOption)
     }
+
+    const toastOption = {
+      autoClose: 4000,
+      type: toast.TYPE.SUCCESS,
+      hideProgressBar: false,
+      position: toast.POSITION.BOTTOM_CENTER,
+      pauseOnHover: true,
+    }
+
+    toast.success("Successfully updated Slack channels.", toastOption)
 
     return
   }
 
   const handleGoogleGroupsUpdate = async (addedGroups) => {
-    if (google?.groupKeys?.length && members?.length) {
-      const memberEmails = members.map((member) => member.email)
+    const memberEmails = members.map((member) => member.email)
 
-      // Remove users from every existing google group in the template.
-      memberEmails.length &&
-        (await axios({
-          method: "delete",
-          url: URL.REMOVE_FROM_GOOGLE_GROUPS,
-          headers: {
-            "Content-Type": "application/json",
-          },
-          data: JSON.stringify({ members: memberEmails, groupKeys: google.groupKeys }),
+    // Remove users from every existing google group in the template.
+    memberEmails.length &&
+      google?.groupKeys?.length &&
+      (await axios({
+        method: "delete",
+        url: URL.REMOVE_FROM_GOOGLE_GROUPS,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: JSON.stringify({ members: memberEmails, groupKeys: google.groupKeys }),
+      })
+        .then((response) => {
+          console.log(JSON.stringify(response.data))
+          return response.data
         })
-          .then((response) => {
-            console.log(JSON.stringify(response.data))
-            return response.data
-          })
-          .catch((error) => {
-            console.log("Error at remove users from google groups: ", error)
-            throw new Error(error)
-          }))
+        .catch((error) => {
+          console.log("Error at remove users from google groups: ", error)
+          throw new Error(error)
+        }))
 
+    if (addedGroups.length) {
       // Update the template with the new google groups in MongoDB database.
       await axios({
         method: "put",
@@ -307,53 +311,55 @@ export default function Template({ id, BACKEND_URL }) {
       const googleGroupMembers = memberEmails.map((email) => ({ email, role: "MEMBER" }))
 
       // Invite users to the new google groups in the template.
-      await axios({
-        method: "post",
-        url: URL.ADD_TO_GOOGLE_GROUPS,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        data: JSON.stringify({ groupKeys: addedGroups, members: googleGroupMembers }),
-      })
-        .then((response) => console.log(JSON.stringify(response.data)))
-        .catch((error) => console.log(error))
-
-      const toastOption = {
-        autoClose: 4000,
-        type: toast.TYPE.SUCCESS,
-        hideProgressBar: false,
-        position: toast.POSITION.BOTTOM_CENTER,
-        pauseOnHover: true,
-      }
-
-      toast.success("Successfully updated Google groups.", toastOption)
+      memberEmails.length &&
+        (await axios({
+          method: "post",
+          url: URL.ADD_TO_GOOGLE_GROUPS,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          data: JSON.stringify({ groupKeys: addedGroups, members: googleGroupMembers }),
+        })
+          .then((response) => console.log(JSON.stringify(response.data)))
+          .catch((error) => console.log(error)))
     }
+
+    const toastOption = {
+      autoClose: 4000,
+      type: toast.TYPE.SUCCESS,
+      hideProgressBar: false,
+      position: toast.POSITION.BOTTOM_CENTER,
+      pauseOnHover: true,
+    }
+
+    toast.success("Successfully updated Google groups.", toastOption)
 
     return
   }
 
   const handleAtlassianGroupsUpdate = async (addedGroups) => {
-    if (atlassian?.groupnames?.length && members?.length) {
-      const memberEmails = members.map((member) => member.email)
-      // Remove users from every existing atlassian jira group in the template.
-      memberEmails.length &&
-        (await axios({
-          method: "delete",
-          url: URL.REMOVE_FROM_ATLASSIAN_GROUPS,
-          headers: {
-            "Content-Type": "application/json",
-          },
-          data: JSON.stringify({ groupnames: atlassian.groupnames, emails: memberEmails }),
+    const memberEmails = members.map((member) => member.email)
+    // Remove users from every existing atlassian jira group in the template.
+    memberEmails.length &&
+      atlassian?.groupnames?.length &&
+      (await axios({
+        method: "delete",
+        url: URL.REMOVE_FROM_ATLASSIAN_GROUPS,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: JSON.stringify({ groupnames: atlassian.groupnames, emails: memberEmails }),
+      })
+        .then((response) => {
+          console.log(JSON.stringify(response.data))
+          return response.data
         })
-          .then((response) => {
-            console.log(JSON.stringify(response.data))
-            return response.data
-          })
-          .catch((error) => {
-            console.log(error)
-            throw new Error(error)
-          }))
+        .catch((error) => {
+          console.log(error)
+          throw new Error(error)
+        }))
 
+    if (addedGroups.length) {
       // Update the template with the new Atlassian groups in MongoDB database.
       await axios({
         method: "put",
@@ -373,33 +379,34 @@ export default function Template({ id, BACKEND_URL }) {
         })
 
       // Invite users to the new Atlassian groups in the template.
-      await axios({
-        method: "post",
-        url: URL.INVITE_TO_ATLASSIAN_GROUPS,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        data: JSON.stringify({ emails: memberEmails, groupnames: addedGroups }),
-      })
-        .then((response) => {
-          console.log(JSON.stringify(response.data))
-          return response.data
+      memberEmails.length &&
+        (await axios({
+          method: "post",
+          url: URL.INVITE_TO_ATLASSIAN_GROUPS,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          data: JSON.stringify({ emails: memberEmails, groupnames: addedGroups }),
         })
-        .catch((error) => {
-          console.log(error)
-          throw new Error(error)
-        })
-
-      const toastOption = {
-        autoClose: 4000,
-        type: toast.TYPE.SUCCESS,
-        hideProgressBar: false,
-        position: toast.POSITION.BOTTOM_CENTER,
-        pauseOnHover: true,
-      }
-
-      toast.success("Successfully updated Atlassian groups.", toastOption)
+          .then((response) => {
+            console.log(JSON.stringify(response.data))
+            return response.data
+          })
+          .catch((error) => {
+            console.log(error)
+            throw new Error(error)
+          }))
     }
+
+    const toastOption = {
+      autoClose: 4000,
+      type: toast.TYPE.SUCCESS,
+      hideProgressBar: false,
+      position: toast.POSITION.BOTTOM_CENTER,
+      pauseOnHover: true,
+    }
+
+    toast.success("Successfully updated Atlassian groups.", toastOption)
   }
 
   return (
