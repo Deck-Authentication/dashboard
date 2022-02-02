@@ -8,11 +8,14 @@ import Slack_Mark from "../../../assets/Slack_Mark.svg"
 import Google_Group from "../../../assets/Google_Group.svg"
 import Atlassian from "../../../assets/Atlassian.svg"
 import { UserIcon } from "@heroicons/react/solid"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Transition } from "@headlessui/react"
 import { SlackSidebar } from "../../../components/slack"
 import { GoogleGroupSidebar } from "../../../components/google-group"
 import { AtlassianSidebar } from "../../../components/atlassian"
+import { PlusCircleIcon } from "@heroicons/react/solid"
+import Router from "next/router"
+import { XCircleIcon } from "@heroicons/react/solid"
 
 function useTemplate(url = "") {
   const fetcher = async (url) =>
@@ -86,13 +89,27 @@ function useAtlassianGroups(url = "") {
   }
 }
 
+const toastOption = {
+  autoClose: 4000,
+  type: toast.TYPE.SUCCESS,
+  hideProgressBar: false,
+  position: toast.POSITION.BOTTOM_CENTER,
+  pauseOnHover: true,
+}
+
 export default function Template({ id, BACKEND_URL }) {
   const [isSlackDrawerOpen, setSlackDrawerOpen] = useState(false)
   const [isGoogleDrawerOpen, setGoogleDrawerOpen] = useState(false)
   const [isAtlassianDrawerOpen, setAtlassianDrawerOpen] = useState(false)
+  const [isAddUserBtnLoading, setAddUserBtnLoading] = useState(false)
+  const [newUserEmail, setNewUserEmail] = useState("")
+  const [slackChannels, setSlackChannels] = useState([])
+  const [googleGroupKeys, setGoogleGroupKeys] = useState([])
+  const [atlassianGroupnames, setAtlassianGroupnames] = useState([])
 
   const URL = {
     GET_TEMPLATE_BY_ID: `${BACKEND_URL}/template/get-template-by-id/${id}`,
+    UPDATE_TEMPLATE_MEMBER: `${BACKEND_URL}/template/update-template/members`,
     // Slack
     UPDATE_SLACK_TEMPLATE: `${BACKEND_URL}/template/update-template/app/slack`,
     GET_SLACK_CONVERSATIONS: `${BACKEND_URL}/slack/list-conversations`,
@@ -259,15 +276,9 @@ export default function Template({ id, BACKEND_URL }) {
       }
     }
 
-    const toastOption = {
-      autoClose: 4000,
-      type: toast.TYPE.SUCCESS,
-      hideProgressBar: false,
-      position: toast.POSITION.BOTTOM_CENTER,
-      pauseOnHover: true,
-    }
-
     toast.success("Successfully updated Slack channels.", toastOption)
+
+    Router.reload(window.location.pathname)
 
     return
   }
@@ -324,15 +335,9 @@ export default function Template({ id, BACKEND_URL }) {
           .catch((error) => console.log(error)))
     }
 
-    const toastOption = {
-      autoClose: 4000,
-      type: toast.TYPE.SUCCESS,
-      hideProgressBar: false,
-      position: toast.POSITION.BOTTOM_CENTER,
-      pauseOnHover: true,
-    }
-
     toast.success("Successfully updated Google groups.", toastOption)
+
+    Router.reload(window.location.pathname)
 
     return
   }
@@ -398,15 +403,204 @@ export default function Template({ id, BACKEND_URL }) {
           }))
     }
 
-    const toastOption = {
-      autoClose: 4000,
-      type: toast.TYPE.SUCCESS,
-      hideProgressBar: false,
-      position: toast.POSITION.BOTTOM_CENTER,
-      pauseOnHover: true,
-    }
-
     toast.success("Successfully updated Atlassian groups.", toastOption)
+
+    Router.reload(window.location.pathname)
+
+    return
+  }
+
+  // invite the user to all directories in the template base on the user's email
+  const inviteAll = async (email) => {
+    let promises = []
+    slack.channels?.length &&
+      promises.push(
+        axios({
+          method: "put",
+          url: URL.INVITE_TO_CHANNELS,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          data: JSON.stringify({
+            emails: [email],
+            channels: slack.channels,
+          }),
+        })
+      )
+
+    google?.groupKeys?.length &&
+      promises.push(
+        axios({
+          method: "post",
+          url: URL.ADD_TO_GOOGLE_GROUPS,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          data: JSON.stringify({ groupKeys: google.groupKeys, members: [{ email, role: "MEMBER" }] }),
+        })
+      )
+
+    atlassian?.groupnames?.length &&
+      promises.push(
+        axios({
+          method: "post",
+          url: URL.INVITE_TO_ATLASSIAN_GROUPS,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          data: JSON.stringify({ groupnames: atlassian.groupnames, emails: [email] }),
+        })
+      )
+
+    await Promise.all(promises)
+      .then((_) => toast.success(`Successfully invited user ${email} to group`, toastOption))
+      .catch((err) => {
+        console.log(err)
+        throw new Error(err)
+      })
+  }
+
+  // remove users from all directories in the template
+  const removeAll = async (email) => {
+    let promises = []
+    slack.channels?.length &&
+      promises.push(
+        axios({
+          method: "delete",
+          url: URL.REMOVE_FROM_CHANNELS,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          data: JSON.stringify({
+            emails: [email],
+            channels: slack.channels,
+          }),
+        })
+      )
+
+    google?.groupKeys?.length &&
+      promises.push(
+        axios({
+          method: "delete",
+          url: URL.REMOVE_FROM_GOOGLE_GROUPS,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          data: JSON.stringify({ groupKeys: google.groupKeys, members: [email] }),
+        })
+      )
+
+    atlassian?.groupnames?.length &&
+      promises.push(
+        axios({
+          method: "delete",
+          url: URL.REMOVE_FROM_ATLASSIAN_GROUPS,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          data: JSON.stringify({
+            groupnames: atlassian.groupnames,
+            emails: [email],
+          }),
+        })
+      )
+    await Promise.all(promises)
+      .then((_) => toast.success(`Successfully remove ${email} from group`, toastOption))
+      .catch((err) => {
+        console.log(err)
+        throw new Error(err)
+      })
+  }
+
+  const addUser = async (email) => {
+    if (email.trim().length) {
+      // search for the user in the database
+      const user = await axios({
+        method: "get",
+        url: `${BACKEND_URL}/template/get-user/${email}`,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then((response) => {
+          console.log(JSON.stringify(response.data))
+          return response.data.user
+        })
+        .catch((error) => {
+          console.log(error)
+          throw new Error(error)
+        })
+      // get the user name and referenceId
+      // call the backend to add the user to the template
+      await axios({
+        method: "put",
+        url: URL.UPDATE_TEMPLATE_MEMBER,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: JSON.stringify({
+          id: id,
+          members: [
+            ...members,
+            {
+              email: email,
+              name: user.name,
+              referenceId: user._id.toString(),
+            },
+          ],
+        }),
+      })
+        .then((response) => {
+          console.log(JSON.stringify(response.data))
+        })
+        .catch((error) => {
+          console.log(error)
+          throw new Error(error)
+        })
+
+      // add users to every directory in Slack, Google Group, and Atlassian Cloud
+      await inviteAll(email.trim())
+        .then((_) => Router.reload(window.location.pathname))
+        .catch((err) => {
+          console.log(err)
+          throw new Error(err)
+        })
+    }
+  }
+
+  const removeUser = async (email) => {
+    if (email.trim().length) {
+      // call the backend to remove the user from the template
+      const newMemberList = members.filter((member) => member.email !== email)
+      await axios({
+        method: "put",
+        url: URL.UPDATE_TEMPLATE_MEMBER,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: JSON.stringify({
+          id: id,
+          members: newMemberList,
+        }),
+      })
+        .then((response) => {
+          console.log(JSON.stringify(response.data))
+        })
+        .catch((error) => {
+          console.log(error)
+          throw new Error(error)
+        })
+
+      // remove users from every directory in Slack, Google Group, and Atlassian Cloud
+      await removeAll(email.trim())
+        .then((_) => Router.reload(window.location.pathname))
+        .catch((err) => {
+          console.log(err)
+          // throw new Error(err)
+        })
+
+      Router.reload(window.location.pathname)
+    }
   }
 
   return (
@@ -429,7 +623,45 @@ export default function Template({ id, BACKEND_URL }) {
         </div>
         <div>
           <h2 className="text-xl mb-2">Members ({members.length})</h2>
-          <div className="flex flex-row space-x-8">{members.map((member, key) => MemberCard({ ...member, key }))}</div>
+          <div className="flex flex-row space-x-8">
+            {members.map((member, key) => MemberCard({ ...member, key, removeUser: removeUser }))}
+            <label
+              htmlFor="invite-user-modal"
+              style={{ height: 150, width: 225 }}
+              className="p-2 flex justify-center items-center border rounded-lg shadow cursor-pointer hover:bg-gray-200"
+            >
+              <PlusCircleIcon className="h-10 w-10 text-blue-500" />
+            </label>
+            <input type="checkbox" id="invite-user-modal" className="modal-toggle" />
+            <div className="modal">
+              <div className="modal-box bg-white p-10">
+                <input
+                  type="text"
+                  placeholder="User email"
+                  className="text-xl w-full rounded-2xl p-2 border border-blue-300"
+                  value={newUserEmail}
+                  onChange={(event) => setNewUserEmail(event.target.value)}
+                />
+                <div className="modal-action">
+                  <label
+                    htmlFor="invite-user-modal"
+                    className={`btn btn-primary ${isAddUserBtnLoading ? "loading" : ""}`}
+                    onClick={async (event) => {
+                      event.preventDefault()
+                      setAddUserBtnLoading(true)
+                      await addUser(newUserEmail)
+                      setAddUserBtnLoading(false)
+                    }}
+                  >
+                    Add
+                  </label>
+                  <label htmlFor="invite-user-modal" className="btn">
+                    Cancel
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
       {/* Sidebars appear after clicking one of the card in the app cards list */}
@@ -536,14 +768,15 @@ const AppCard = ({ imgSrc = "", imgAlt = "", name = "", key = "", handleDrawer =
   )
 }
 
-const MemberCard = ({ email, name, referenceId, key }) => {
+const MemberCard = ({ email, name, referenceId, key, removeUser }) => {
   return (
     <a
       key={`${name}_${referenceId}_${key}`}
       href="#"
-      className="p-2 border shadow relative rounded-lg hover:bg-gray-200 flex flex-col"
+      className="p-2 border shadow relative rounded-lg hover:bg-gray-200 flex flex-col relative"
       title={name}
     >
+      <XCircleIcon className="absolute top-0 right-0 m-2 w-5 h-5" onClick={async () => await removeUser(email)} />
       <div>
         <UserIcon style={{ height: 100, width: 200 }} />
       </div>
