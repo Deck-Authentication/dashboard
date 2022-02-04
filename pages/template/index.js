@@ -157,7 +157,6 @@ function TemplateCard({ template, key, deleteTemplate }) {
         <XCircleIcon
           className="absolute z-10 h-6 w-6 top-0 right-0 hover:text-red-600"
           onClick={(event) => {
-            event.stopPropagation()
             event.preventDefault()
             deleteTemplate(_id, name)
           }}
