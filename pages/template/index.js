@@ -3,6 +3,8 @@ import Router from "next/router"
 import axios from "axios"
 import useSWR from "swr"
 import { useState } from "react"
+import { XCircleIcon } from "@heroicons/react/solid"
+import { ToastContainer, toast } from "react-toastify"
 
 const fetcher = async (url) =>
   await axios
@@ -13,9 +15,18 @@ const fetcher = async (url) =>
       throw new Error(err)
     })
 
+const toastOption = {
+  autoClose: 4000,
+  type: toast.TYPE.SUCCESS,
+  hideProgressBar: false,
+  position: toast.POSITION.BOTTOM_CENTER,
+  pauseOnHover: true,
+}
+
 export default function Templates({ BACKEND_URL }) {
   const URL = {
     CREATE_TEMPLATE: `${BACKEND_URL}/template/create-template`,
+    DELETE_TEMPLATE: `${BACKEND_URL}/template/remove-template`,
   }
 
   const [newTemplateName, setNewTemplateName] = useState("")
@@ -44,6 +55,27 @@ export default function Templates({ BACKEND_URL }) {
         console.log(error)
         throw new Error(error)
       })
+  }
+
+  const deleteTemplate = async (templateId, templateName) => {
+    const config = {
+      method: "delete",
+      url: URL.DELETE_TEMPLATE,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: JSON.stringify({ id: templateId }),
+    }
+
+    await axios(config)
+      .then((_) => toast.success(`Successfully delete ${templateName}`, toastOption))
+      .catch((err) => {
+        console.log(err)
+        throw new Error(err)
+      })
+
+    // Trigger a reload to get the updated list of templates
+    Router.reload(window.location.pathname)
   }
 
   if (error)
@@ -99,13 +131,14 @@ export default function Templates({ BACKEND_URL }) {
         </div>
       </div>
       <section className="mt-5 flex flex-row gap-4">
-        {data["template"].map((template, key) => TemplateCard({ template, key }))}
+        {data["template"].map((template, key) => TemplateCard({ template, key, deleteTemplate: deleteTemplate }))}
       </section>
+      <ToastContainer />
     </div>
   )
 }
 
-function TemplateCard({ template, key }) {
+function TemplateCard({ template, key, deleteTemplate }) {
   const { name, members, app, _id } = template
   const borderTopColors = [
     "border-t-blue-300",
@@ -116,11 +149,19 @@ function TemplateCard({ template, key }) {
     "border-t-yellow-300",
   ]
   const cardBorderTopColor = borderTopColors[key % 6]
-  const LinkStyle = `defined-card w-1/5 min-w-max h-36 mt-2 mr-2 bg-white cursor-pointer hover:shadow-lg border-gray-100 border-t-8 ${cardBorderTopColor}`
+  const TemplateCardStyle = `defined-card relative w-1/5 min-w-max h-36 mt-2 mr-2 bg-white cursor-pointer hover:shadow-lg border-gray-100 border-t-8 ${cardBorderTopColor}`
 
   return (
     <Link href={`/template/${_id}`} key={key} passHref>
-      <a className={LinkStyle}>
+      <a className={TemplateCardStyle}>
+        <XCircleIcon
+          className="absolute z-10 h-6 w-6 top-0 right-0 hover:text-red-600"
+          onClick={(event) => {
+            event.stopPropagation()
+            event.preventDefault()
+            deleteTemplate(_id, name)
+          }}
+        />
         <div className="card-body">
           <h2 className="card-title">{name}</h2>
           <p>Number of members: {members.length}</p>
