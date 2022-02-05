@@ -5,6 +5,7 @@ import useSWR from "swr"
 import { useState } from "react"
 import { XCircleIcon } from "@heroicons/react/solid"
 import { ToastContainer, toast } from "react-toastify"
+import Spinner from "../../components/spinner"
 
 const fetcher = async (url) =>
   await axios
@@ -85,7 +86,12 @@ export default function Templates({ BACKEND_URL }) {
         issue as soon as possible.
       </>
     )
-  if (!data) return <div>Loading...</div>
+  if (!data)
+    return (
+      <div className="w-full h-full flex justify-center items-center">
+        <Spinner />
+      </div>
+    )
 
   return (
     <div id="template" className="w-full p-5">
