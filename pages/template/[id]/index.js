@@ -8,7 +8,7 @@ import Slack_Mark from "../../../assets/Slack_Mark.svg"
 import Google_Group from "../../../assets/Google_Group.svg"
 import Atlassian from "../../../assets/Atlassian.svg"
 import { UserIcon } from "@heroicons/react/solid"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Transition } from "@headlessui/react"
 import { SlackSidebar } from "../../../components/slack"
 import { GoogleGroupSidebar } from "../../../components/google-group"
@@ -16,6 +16,7 @@ import { AtlassianSidebar } from "../../../components/atlassian"
 import { PlusCircleIcon } from "@heroicons/react/solid"
 import Router from "next/router"
 import { XCircleIcon } from "@heroicons/react/solid"
+import Spinner from "../../../components/spinner"
 
 function useTemplate(url = "") {
   const fetcher = async (url) =>
@@ -142,7 +143,12 @@ export default function Template({ id, BACKEND_URL }) {
         and we will resolve the issue as soon as possible.
       </div>
     )
-  } else if (isTemplateLoading) return <div>Loading...</div>
+  } else if (isTemplateLoading)
+    return (
+      <div className="w-full h-full flex justify-center items-center">
+        <Spinner />
+      </div>
+    )
 
   if (areConversationsFailed) {
     return (
@@ -154,7 +160,12 @@ export default function Template({ id, BACKEND_URL }) {
         and we will resolve the issue as soon as possible.
       </div>
     )
-  } else if (areConversationsLoading) return <div>Loading...</div>
+  } else if (areConversationsLoading)
+    return (
+      <div className="w-full h-full flex justify-center items-center">
+        <Spinner />
+      </div>
+    )
 
   if (areGroupsFailed) {
     return (
@@ -166,7 +177,12 @@ export default function Template({ id, BACKEND_URL }) {
         and we will resolve the issue as soon as possible.
       </div>
     )
-  } else if (areGroupsLoading) return <div>Loading...</div>
+  } else if (areGroupsLoading)
+    return (
+      <div className="w-full h-full flex justify-center items-center">
+        <Spinner />
+      </div>
+    )
 
   if (areAtlassianGroupsFailed) {
     return (
@@ -178,7 +194,12 @@ export default function Template({ id, BACKEND_URL }) {
         and we will resolve the issue as soon as possible.
       </div>
     )
-  } else if (areAtlassianGroupsLoading) return <div>Loading...</div>
+  } else if (areAtlassianGroupsLoading)
+    return (
+      <div className="w-full h-full flex justify-center items-center">
+        <Spinner />
+      </div>
+    )
 
   // fetch all apps and template's members list from the data received from backend
   const {
