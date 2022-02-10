@@ -7,7 +7,6 @@ export default function Header() {
     { name: "Profile", href: "#" },
     { name: "Logout", href: "/api/auth/logout" },
   ]
-
   const { user, error, isLoading } = useUser()
 
   if (isLoading)
