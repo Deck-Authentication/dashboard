@@ -2,16 +2,15 @@ import Menu from "./menu.js"
 import Header from "./header.js"
 import Head from "next/head"
 import { useUser } from "@auth0/nextjs-auth0"
-import { useRouter } from "next/router"
+import Router from "next/router"
 import Spinner from "./spinner"
 import { useEffect } from "react"
 
 export default function Layout(props) {
-  const router = useRouter()
   const { user, error, isLoading } = useUser()
 
   useEffect(() => {
-    if (!user) router.push("/api/auth/login")
+    if (!user) Router.push("/api/auth/login")
   })
 
   if (isLoading)
