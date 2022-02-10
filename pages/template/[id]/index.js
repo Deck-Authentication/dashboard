@@ -17,6 +17,7 @@ import { PlusCircleIcon } from "@heroicons/react/solid"
 import Router from "next/router"
 import { XCircleIcon } from "@heroicons/react/solid"
 import Spinner from "../../../components/spinner"
+import { URL } from "../../../constants"
 
 function useTemplate(url = "") {
   const fetcher = async (url) =>
@@ -98,7 +99,7 @@ const toastOption = {
   pauseOnHover: true,
 }
 
-export default function Template({ id, BACKEND_URL }) {
+export default function Template({ id }) {
   const [isSlackDrawerOpen, setSlackDrawerOpen] = useState(false)
   const [isGoogleDrawerOpen, setGoogleDrawerOpen] = useState(false)
   const [isAtlassianDrawerOpen, setAtlassianDrawerOpen] = useState(false)
@@ -108,27 +109,7 @@ export default function Template({ id, BACKEND_URL }) {
   const [googleGroupKeys, setGoogleGroupKeys] = useState([])
   const [atlassianGroupnames, setAtlassianGroupnames] = useState([])
 
-  const URL = {
-    GET_TEMPLATE_BY_ID: `${BACKEND_URL}/template/get-template-by-id/${id}`,
-    UPDATE_TEMPLATE_MEMBER: `${BACKEND_URL}/template/update-template/members`,
-    // Slack
-    UPDATE_SLACK_TEMPLATE: `${BACKEND_URL}/template/update-template/app/slack`,
-    GET_SLACK_CONVERSATIONS: `${BACKEND_URL}/slack/list-conversations`,
-    REMOVE_FROM_CHANNELS: `${BACKEND_URL}/slack/remove-from-channels`,
-    INVITE_TO_CHANNELS: `${BACKEND_URL}/slack/invite-to-channel`,
-    // Google Group
-    GET_GOOGLE_GROUPS: `${BACKEND_URL}/google/group/list-all-groups`,
-    UPDATE_GOOGLE_GROUP_TEMPLATE: `${BACKEND_URL}/template/update-template/app/google`,
-    REMOVE_FROM_GOOGLE_GROUPS: `${BACKEND_URL}/google/group/remove-members`,
-    ADD_TO_GOOGLE_GROUPS: `${BACKEND_URL}/google/group/add-members`,
-    // Atlassian Cloud
-    UPDATE_ATLASSIAN_TEMPLATE: `${BACKEND_URL}/template/update-template/app/atlassian`,
-    GET_ATLASSIAN_GROUPS: `${BACKEND_URL}/atlassian/jira/get-all-groups`,
-    REMOVE_FROM_ATLASSIAN_GROUPS: `${BACKEND_URL}/atlassian/jira/remove-from-team`,
-    INVITE_TO_ATLASSIAN_GROUPS: `${BACKEND_URL}/atlassian/jira/invite-to-team`,
-  }
-
-  const { template, isTemplateLoading, isTemplateError } = useTemplate(URL.GET_TEMPLATE_BY_ID)
+  const { template, isTemplateLoading, isTemplateError } = useTemplate(`${URL.GET_TEMPLATE_BY_ID}/${id}`)
   const { conversations, areConversationsLoading, areConversationsFailed } = useSlackConversations(URL.GET_SLACK_CONVERSATIONS)
   const { groups, areGroupsLoading, areGroupsFailed } = useGoogleGroups(URL.GET_GOOGLE_GROUPS)
   const { atlassianGroups, areAtlassianGroupsLoading, areAtlassianGroupsFailed } = useAtlassianGroups(URL.GET_ATLASSIAN_GROUPS)
@@ -538,7 +519,7 @@ export default function Template({ id, BACKEND_URL }) {
       // search for the user in the database
       const user = await axios({
         method: "get",
-        url: `${BACKEND_URL}/template/get-user/${email}`,
+        url: `${URL.GET_USER_BY_EMAIL}/${email}`,
         headers: {
           "Content-Type": "application/json",
         },
@@ -810,11 +791,9 @@ export async function getServerSideProps(context) {
   // Fetch id as the slug of the page from the context.params
   // set id's default value as undefined to avoid TypeError
   const { params: { id } = { id: undefined } } = context
-  const BACKEND_URL = process.env.BACKEND_URL
 
   return {
     props: {
-      BACKEND_URL,
       id,
     },
   }
