@@ -11,7 +11,7 @@ export default function Layout(props) {
   const { user, error, isLoading } = useUser()
 
   useEffect(() => {
-    user || router.push("/api/auth/login")
+    if (!user) router.push("/api/auth/login")
   })
 
   if (isLoading)
