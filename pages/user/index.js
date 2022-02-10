@@ -9,14 +9,14 @@ function useUsers(url = "") {
   const { data, error } = useSWR(URL.LIST_ALL_USERS, fetcher)
 
   return {
-    user: data,
+    users: data,
     areUsersBeingLoaded: !data,
     isUsersLoadingFailed: error,
   }
 }
 
 export default function User() {
-  const { user, areUsersBeingLoaded, isUsersLoadingFailed } = useUsers()
+  const { users, areUsersBeingLoaded, isUsersLoadingFailed } = useUsers()
 
   if (isUsersLoadingFailed)
     return (
@@ -36,5 +36,28 @@ export default function User() {
       </div>
     )
 
-  return <div id="user">{JSON.stringify(user)}</div>
+  return (
+    <div id="user" className="overflow-x-auto" data-theme="light">
+      <table className="table w-full table-zebra">
+        <thead>
+          <tr className="hover:mix-blend-multiply cursor-pointer">
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Team</th>
+          </tr>
+        </thead>
+        <tbody>
+          {users.map((user, key) => (
+            <tr className="hover:mix-blend-multiply cursor-pointer" key={`${user?._id}_${key}`}>
+              <th>{key + 1}</th>
+              <td>{user?.name}</td>
+              <td>{user?.email}</td>
+              <td>{JSON.stringify(user.team)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
 }
