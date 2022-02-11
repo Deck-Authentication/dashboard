@@ -28,7 +28,7 @@ export default function Header() {
           className="m-1 flex flex-row pl-2 border-l-slate-400 items-end cursor-pointer hover:opacity-70"
           style={{ borderLeftWidth: "0.5px" }}
         >
-          {user?.name || user?.email}
+          {user.name || user.email}
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
             <path
               fillRule="evenodd"

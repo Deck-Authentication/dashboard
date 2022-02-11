@@ -16,78 +16,7 @@ import Router from "next/router"
 import { XCircleIcon } from "@heroicons/react/solid"
 import Spinner from "../../../components/spinner"
 import { URL } from "../../../constants"
-
-function useTemplate(url = "") {
-  const fetcher = async (url) =>
-    await axios({ method: "get", url })
-      // template returned from backend
-      .then((res) => res.data.template)
-      .catch((err) => {
-        console.error(err)
-        throw new Error(err)
-      })
-  const { data, error } = useSWR(url, fetcher)
-
-  return {
-    template: data,
-    isTemplateLoading: !data,
-    isTemplateError: error,
-  }
-}
-
-function useSlackConversations(url = "") {
-  const fetcher = async (url) =>
-    await axios({ method: "get", url })
-      // slack conversations returned from backend
-      .then((res) => res.data.conversations)
-      .catch((err) => {
-        console.error(err)
-        throw new Error(err)
-      })
-  const { data, error } = useSWR(url, fetcher)
-
-  return {
-    conversations: data,
-    areConversationsLoading: !data,
-    areConversationsFailed: error,
-  }
-}
-
-function useGoogleGroups(url = "") {
-  const fetcher = async (url) =>
-    await axios({ method: "get", url })
-      // google groups returned from backend
-      .then((res) => res.data.groups)
-      .catch((err) => {
-        console.error(err)
-        throw new Error(err)
-      })
-  const { data, error } = useSWR(url, fetcher)
-
-  return {
-    groups: data,
-    areGroupsLoading: !data,
-    areGroupsFailed: error,
-  }
-}
-
-function useAtlassianGroups(url = "") {
-  const fetcher = async (url) =>
-    await axios({ method: "get", url })
-      // google groups returned from backend
-      .then((res) => res.data.groups)
-      .catch((err) => {
-        console.error(err)
-        throw new Error(err)
-      })
-  const { data, error } = useSWR(url, fetcher)
-
-  return {
-    atlassianGroups: data,
-    areGroupsLoading: !data,
-    areGroupsFailed: error,
-  }
-}
+import { useSlackConversations, useGoogleGroups, useTemplate, useAtlassianGroups } from "../../../utils"
 
 const toastOption = {
   autoClose: 4000,
