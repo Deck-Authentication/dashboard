@@ -15,51 +15,72 @@ function equalsIgnoreOrder(a = [], b = []) {
   return true
 }
 
-// This function renders the sidebar for the Slack app with channels search view and list of channels in the template.
-export function SlackSidebar({ isOpen, setOpen, allConversations, templateConversations, handleSlackChannelsUpdate }) {
-  const [addedChannels, setAddedChannels] = useState(templateConversations)
+// This function renders the sidebar under the template tab
+export function TemplateSidebar({
+  isOpen,
+  setOpen,
+  appName, // slack, github, atlassian, or google
+  optionType,
+  optionBadgeColor,
+  allOptions,
+  savedOptions,
+  handleOptionsUpdate,
+}) {
+  const [selectedOptions, setSelectedOptions] = useState(savedOptions)
   const [isSaveButtonLoading, setSaveButtonLoading] = useState(false)
 
   // if the added channels are the same as the template channels from the database,
   // we should not update the template and allow the save button to be active
-  const shouldSaveActive = !equalsIgnoreOrder(addedChannels, templateConversations)
+  const shouldSaveActive = !equalsIgnoreOrder(selectedOptions, savedOptions)
 
-  const removeChannel = (_channel) => {
-    setAddedChannels(addedChannels.filter((channel) => channel !== _channel))
+  const removeOption = (_option) => {
+    setSelectedOptions(selectedOptions.filter((option) => option !== _option))
   }
 
   return (
     <div className="w-full h-full divide-y divide-gray-300 space-y-4 p-3">
       <section className="w-full h-1/2 flex flex-col">
-        <input placeholder="Search channels" className="card w-full mb-4" style={{ padding: "0.5rem" }} />
+        <input placeholder={`Search ${optionType?.toLowerCase()}`} className="card w-full mb-4" style={{ padding: "0.5rem" }} />
         <ul className="search-result flex flex-col space-y-2 max-h-80 overflow-y-auto">
-          {allConversations.map((conversation, key) => {
-            const isConversationSelected = addedChannels.includes(conversation.name)
+          {allOptions.map((option, key) => {
+            // since the fields we pick for atlassian & slack are "name", while for google it's "email"
+            // we have to decide the option field to pick
+            let optionField = appName === "google" ? "email" : "name"
+
+            const isOptionSelected = selectedOptions.includes(option[optionField])
 
             return (
               <li
-                key={`${conversation.id}_${key}`}
+                key={`${option.id}_${key}`}
                 className={`flex flex-row justify-between rounded-lg shadow-lg hover:bg-zinc-200 ${
-                  isConversationSelected ? "bg-gray-200 cursor-not-allowed" : "cursor-pointer"
+                  isOptionSelected ? "bg-gray-200 cursor-not-allowed" : "cursor-pointer"
                 }`}
                 style={{ padding: "0.5rem" }}
-                onClick={() => !isConversationSelected && setAddedChannels([...addedChannels, conversation.name])}
-                disabled={isConversationSelected}
+                onClick={() => !isOptionSelected && setSelectedOptions([...selectedOptions, option[optionField]])}
+                disabled={isOptionSelected}
               >
-                <p>#{conversation.name}</p>
-                {isConversationSelected && <CheckCircleIcon className="h-5 w-5 text-green-400" />}
+                <p>
+                  {appName === "slack" && "#"}
+                  {option.name} {appName === "google" ? `(${option.email})` : ""}
+                </p>
+                {isOptionSelected && <CheckCircleIcon className="h-5 w-5 text-green-400" />}
               </li>
             )
           })}
         </ul>
       </section>
       <section className="w-full flex flex-col pt-2 h-1/2">
-        <h2 className="defined-badge p-1 mt-4 mb-2 w-fit bg-blue-400 text-white">ADDED CHANNELS</h2>
+        <h2 className={`defined-badge p-1 mt-4 mb-2 w-fit ${optionBadgeColor} text-white`}>
+          ADDED {optionType?.toUpperCase()}
+        </h2>
         <ul className="space-y-2 divide-y divide-neutral-300 h-full overflow-y-auto">
-          {addedChannels.map((conversation, key) => (
-            <li key={`${conversation}_${key}`} className="flex flex row justify-between" style={{ padding: "0.5rem" }}>
-              <p>#{conversation}</p>
-              <TrashIcon className="h-5 w-5 hover:text-red-400 cursor-pointer" onClick={() => removeChannel(conversation)} />
+          {selectedOptions.map((option, key) => (
+            <li key={`${option}_${key}`} className="flex flex row justify-between" style={{ padding: "0.5rem" }}>
+              <p>
+                {appName === "slack" && "#"}
+                {option}
+              </p>
+              <TrashIcon className="h-5 w-5 hover:text-red-400 cursor-pointer" onClick={() => removeOption(option)} />
             </li>
           ))}
         </ul>
@@ -72,7 +93,7 @@ export function SlackSidebar({ isOpen, setOpen, allConversations, templateConver
             onClick={async (event) => {
               event.preventDefault
               setSaveButtonLoading(true)
-              await handleSlackChannelsUpdate(addedChannels)
+              await handleOptionsUpdate(selectedOptions)
               setSaveButtonLoading(false)
             }}
           >

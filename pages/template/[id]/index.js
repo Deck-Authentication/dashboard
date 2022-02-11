@@ -10,9 +10,7 @@ import Atlassian from "../../../assets/Atlassian.svg"
 import { UserIcon } from "@heroicons/react/solid"
 import { useState } from "react"
 import { Transition } from "@headlessui/react"
-import { SlackSidebar } from "../../../components/slack"
-import { GoogleGroupSidebar } from "../../../components/google-group"
-import { AtlassianSidebar } from "../../../components/atlassian"
+import { TemplateSidebar } from "../../../components/TemplateSidebar"
 import { PlusCircleIcon } from "@heroicons/react/solid"
 import Router from "next/router"
 import { XCircleIcon } from "@heroicons/react/solid"
@@ -682,13 +680,16 @@ export default function Template({ id }) {
             We must add something in this area
           */}
           <div className="flex-none w-128 p-5 flex flex-col bg-[#f0f0f0]">
-            <SlackSidebar
+            <TemplateSidebar
               {...{
                 isOpen: isSlackDrawerOpen,
                 setOpen: setSlackDrawerOpen,
-                allConversations: conversations,
-                templateConversations: slack.channels,
-                handleSlackChannelsUpdate,
+                optionType: "channels",
+                optionBadgeColor: "bg-blue-500",
+                allOptions: conversations,
+                appName: "slack",
+                savedOptions: slack.channels,
+                handleOptionsUpdate: handleSlackChannelsUpdate,
               }}
             />
           </div>
@@ -709,13 +710,16 @@ export default function Template({ id }) {
             We must add something in this area
           */}
           <div className="flex-none w-128 p-5 flex flex-col bg-[#f0f0f0]">
-            <GoogleGroupSidebar
+            <TemplateSidebar
               {...{
                 isOpen: isGoogleDrawerOpen,
                 setOpen: setGoogleDrawerOpen,
-                allGroups: groups,
-                templateGroups: google.groupKeys,
-                handleGroupsUpdate: handleGoogleGroupsUpdate,
+                optionType: "groups",
+                optionBadgeColor: "bg-green-500",
+                allOptions: groups,
+                appName: "google",
+                savedOptions: google.groupKeys,
+                handleOptionsUpdate: handleGoogleGroupsUpdate,
               }}
             />
           </div>
@@ -736,13 +740,16 @@ export default function Template({ id }) {
             We must add something in this area
           */}
           <div className="flex-none w-128 p-5 flex flex-col bg-[#f0f0f0]">
-            <AtlassianSidebar
+            <TemplateSidebar
               {...{
                 isOpen: isAtlassianDrawerOpen,
                 setOpen: setAtlassianDrawerOpen,
-                allGroups: atlassianGroups,
-                templateGroups: atlassian.groupnames,
-                handleGroupsUpdate: handleAtlassianGroupsUpdate,
+                optionType: "groups",
+                optionBadgeColor: "bg-indigo-500",
+                allOptions: atlassianGroups,
+                appName: "atlassian",
+                savedOptions: atlassian.groupnames,
+                handleOptionsUpdate: handleAtlassianGroupsUpdate,
               }}
             />
           </div>
