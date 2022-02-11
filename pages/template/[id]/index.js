@@ -610,7 +610,7 @@ export default function Template({ id }) {
         <div className="h-0.5 w-1/4 bg-gray-300" />
         <div className="my-8 drawer-content">
           <h2 className="text-xl mb-2">Applications ({appCardsData.length})</h2>
-          <div className="flex flex-row space-x-8">
+          <div className="flex flex-row flex-wrap space-x-8">
             {appCardsData
               .filter((app) => Boolean(app.appData))
               .map((app, key) =>

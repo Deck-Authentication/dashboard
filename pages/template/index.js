@@ -136,7 +136,7 @@ export default function Templates({ BACKEND_URL }) {
           </div>
         </div>
       </div>
-      <section className="mt-5 flex flex-row gap-4">
+      <section className="mt-5 flex flex-row flex-wrap gap-4">
         {data["template"].map((template, key) => TemplateCard({ template, key, deleteTemplate: deleteTemplate }))}
       </section>
       <ToastContainer />
