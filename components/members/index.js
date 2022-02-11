@@ -15,54 +15,51 @@ function equalsIgnoreOrder(a = [], b = []) {
   return true
 }
 
-// This function renders the sidebar for the Google Group app with groupp search view and list of groups in the template.
-export function GoogleGroupSidebar({ isOpen, setOpen, allGroups, templateGroups, handleGroupsUpdate }) {
-  const [addedGroups, setAddedGroups] = useState(templateGroups)
+// This function renders the sidebar for the Slack app with channels search view and list of channels in the template.
+export function DeckSidebar({ isOpen, setOpen, allConversations, templateConversations, handleSlackChannelsUpdate }) {
+  const [addedChannels, setAddedChannels] = useState(templateConversations)
   const [isSaveButtonLoading, setSaveButtonLoading] = useState(false)
 
   // if the added channels are the same as the template channels from the database,
   // we should not update the template and allow the save button to be active
-  // this line contains a bug, must fix later
-  const shouldSaveActive = !equalsIgnoreOrder(addedGroups, templateGroups)
+  const shouldSaveActive = !equalsIgnoreOrder(addedChannels, templateConversations)
 
-  const removeGroup = (_group) => {
-    setAddedGroups(addedGroups.filter((group) => group !== _group))
+  const removeChannel = (_channel) => {
+    setAddedChannels(addedChannels.filter((channel) => channel !== _channel))
   }
 
   return (
     <div className="w-full h-full divide-y divide-gray-300 space-y-4 p-3">
       <section className="w-full h-1/2 flex flex-col">
-        <input placeholder="Search groups" className="card w-full mb-4" style={{ padding: "0.5rem" }} />
+        <input placeholder="Search channels" className="card w-full mb-4" style={{ padding: "0.5rem" }} />
         <ul className="search-result flex flex-col space-y-2 max-h-80 overflow-y-auto">
-          {allGroups.map((group, key) => {
-            const isGroupSelected = addedGroups.includes(group.email)
+          {allConversations.map((conversation, key) => {
+            const isConversationSelected = addedChannels.includes(conversation.name)
 
             return (
               <li
-                key={`${group.id}_${key}`}
+                key={`${conversation.id}_${key}`}
                 className={`flex flex-row justify-between rounded-lg shadow-lg hover:bg-zinc-200 ${
-                  isGroupSelected ? "bg-gray-200 cursor-not-allowed" : "cursor-pointer"
+                  isConversationSelected ? "bg-gray-200 cursor-not-allowed" : "cursor-pointer"
                 }`}
                 style={{ padding: "0.5rem" }}
-                onClick={() => !isGroupSelected && setAddedGroups([...addedGroups, group.email])}
-                disabled={isGroupSelected}
+                onClick={() => !isConversationSelected && setAddedChannels([...addedChannels, conversation.name])}
+                disabled={isConversationSelected}
               >
-                <p>
-                  #{group.name} ({group.email})
-                </p>
-                {isGroupSelected && <CheckCircleIcon className="h-5 w-5 text-green-400" />}
+                <p>#{conversation.name}</p>
+                {isConversationSelected && <CheckCircleIcon className="h-5 w-5 text-green-400" />}
               </li>
             )
           })}
         </ul>
       </section>
       <section className="w-full flex flex-col pt-2 h-1/2">
-        <h2 className="defined-badge p-1 mt-4 mb-2 w-fit bg-green-400 text-white">ADDED GROUPS</h2>
+        <h2 className="defined-badge p-1 mt-4 mb-2 w-fit bg-blue-400 text-white">ADDED CHANNELS</h2>
         <ul className="space-y-2 divide-y divide-neutral-300 h-full overflow-y-auto">
-          {addedGroups.map((group, key) => (
-            <li key={`${group}_${key}`} className="flex flex row justify-between" style={{ padding: "0.5rem" }}>
-              <p>#{group}</p>
-              <TrashIcon className="h-5 w-5 hover:text-red-400 cursor-pointer" onClick={() => removeGroup(group)} />
+          {addedChannels.map((conversation, key) => (
+            <li key={`${conversation}_${key}`} className="flex flex row justify-between" style={{ padding: "0.5rem" }}>
+              <p>#{conversation}</p>
+              <TrashIcon className="h-5 w-5 hover:text-red-400 cursor-pointer" onClick={() => removeChannel(conversation)} />
             </li>
           ))}
         </ul>
@@ -71,11 +68,11 @@ export function GoogleGroupSidebar({ isOpen, setOpen, allGroups, templateGroups,
             className={`btn btn-primary ${
               shouldSaveActive ? "rounded-btn " : "rounded-btn-disabled text-white cursor-not-allowed"
             } ${isSaveButtonLoading ? "loading" : ""} bg-indigo-500`}
-            // disabled={!shouldSaveActive}
+            disabled={!shouldSaveActive}
             onClick={async (event) => {
               event.preventDefault
               setSaveButtonLoading(true)
-              await handleGroupsUpdate(addedGroups)
+              await handleSlackChannelsUpdate(addedChannels)
               setSaveButtonLoading(false)
             }}
           >
