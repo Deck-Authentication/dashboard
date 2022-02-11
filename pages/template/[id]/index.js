@@ -1,4 +1,3 @@
-import useSWR from "swr"
 import axios from "axios"
 import Image from "next/image"
 import { ToastContainer, toast } from "react-toastify"
@@ -532,6 +531,39 @@ export default function Template({ id }) {
     }
   }
 
+  const sidebarData = [
+    {
+      appName: "slack",
+      isOpen: isSlackDrawerOpen,
+      setOpen: setSlackDrawerOpen,
+      optionType: "channels",
+      optionBadgeColor: "bg-blue-500",
+      allOptions: conversations,
+      savedOptions: slack.channels,
+      handleOptionsUpdate: handleSlackChannelsUpdate,
+    },
+    {
+      appName: "google",
+      isOpen: isGoogleDrawerOpen,
+      setOpen: setGoogleDrawerOpen,
+      optionType: "groups",
+      optionBadgeColor: "bg-green-500",
+      allOptions: groups,
+      savedOptions: google.groupKeys,
+      handleOptionsUpdate: handleGoogleGroupsUpdate,
+    },
+    {
+      appName: "atlassian",
+      isOpen: isAtlassianDrawerOpen,
+      setOpen: setAtlassianDrawerOpen,
+      optionType: "groups",
+      optionBadgeColor: "bg-indigo-500",
+      allOptions: atlassianGroups,
+      savedOptions: atlassian.groupnames,
+      handleOptionsUpdate: handleAtlassianGroupsUpdate,
+    },
+  ]
+
   return (
     <div className="w-full h-full flex flex-col relative justify-items-start">
       <section className="p-5">
@@ -594,96 +626,7 @@ export default function Template({ id }) {
         </div>
       </section>
       {/* Sidebars appear after clicking one of the card in the app cards list */}
-      <Transition
-        show={isSlackDrawerOpen}
-        enter="transition-opacity duration-75"
-        enterFrom="opacity-0"
-        enterTo="opacity-100"
-        leave="transition-opacity duration-150"
-        leaveFrom="opacity-100"
-        leaveTo="opacity-0"
-      >
-        <aside className="absolute inset-0 w-full h-full flex flex-row">
-          <div className="flex-auto bg-zinc-300/80" onClick={() => setSlackDrawerOpen(!isSlackDrawerOpen)}></div>
-          {/*
-            We must add something in this area
-          */}
-          <div className="flex-none w-128 p-5 flex flex-col bg-[#f0f0f0]">
-            <TemplateSidebar
-              {...{
-                isOpen: isSlackDrawerOpen,
-                setOpen: setSlackDrawerOpen,
-                optionType: "channels",
-                optionBadgeColor: "bg-blue-500",
-                allOptions: conversations,
-                appName: "slack",
-                savedOptions: slack.channels,
-                handleOptionsUpdate: handleSlackChannelsUpdate,
-              }}
-            />
-          </div>
-        </aside>
-      </Transition>
-      <Transition
-        show={isGoogleDrawerOpen}
-        enter="transition-opacity duration-75"
-        enterFrom="opacity-0"
-        enterTo="opacity-100"
-        leave="transition-opacity duration-150"
-        leaveFrom="opacity-100"
-        leaveTo="opacity-0"
-      >
-        <aside className="absolute inset-0 w-full h-full flex flex-row">
-          <div className="flex-auto bg-zinc-300/80" onClick={() => setGoogleDrawerOpen(!isGoogleDrawerOpen)}></div>
-          {/*
-            We must add something in this area
-          */}
-          <div className="flex-none w-128 p-5 flex flex-col bg-[#f0f0f0]">
-            <TemplateSidebar
-              {...{
-                isOpen: isGoogleDrawerOpen,
-                setOpen: setGoogleDrawerOpen,
-                optionType: "groups",
-                optionBadgeColor: "bg-green-500",
-                allOptions: groups,
-                appName: "google",
-                savedOptions: google.groupKeys,
-                handleOptionsUpdate: handleGoogleGroupsUpdate,
-              }}
-            />
-          </div>
-        </aside>
-      </Transition>
-      <Transition
-        show={isAtlassianDrawerOpen}
-        enter="transition-opacity duration-75"
-        enterFrom="opacity-0"
-        enterTo="opacity-100"
-        leave="transition-opacity duration-150"
-        leaveFrom="opacity-100"
-        leaveTo="opacity-0"
-      >
-        <aside className="absolute inset-0 w-full h-full flex flex-row">
-          <div className="flex-auto bg-zinc-300/80" onClick={() => setAtlassianDrawerOpen(!isAtlassianDrawerOpen)}></div>
-          {/*
-            We must add something in this area
-          */}
-          <div className="flex-none w-128 p-5 flex flex-col bg-[#f0f0f0]">
-            <TemplateSidebar
-              {...{
-                isOpen: isAtlassianDrawerOpen,
-                setOpen: setAtlassianDrawerOpen,
-                optionType: "groups",
-                optionBadgeColor: "bg-indigo-500",
-                allOptions: atlassianGroups,
-                appName: "atlassian",
-                savedOptions: atlassian.groupnames,
-                handleOptionsUpdate: handleAtlassianGroupsUpdate,
-              }}
-            />
-          </div>
-        </aside>
-      </Transition>
+      {sidebarData.map((data) => Sidebar({ ...data }))}
       {/* Using React Toastify for message notifications */}
       <ToastContainer />
     </div>
@@ -720,6 +663,30 @@ const MemberCard = ({ email, name, referenceId, key, removeUser }) => {
       </div>
       <p className="w-full text-center">{name}</p>
     </a>
+  )
+}
+
+const Sidebar = (props) => {
+  return (
+    <Transition
+      show={props.isOpen}
+      enter="transition-opacity duration-75"
+      enterFrom="opacity-0"
+      enterTo="opacity-100"
+      leave="transition-opacity duration-150"
+      leaveFrom="opacity-100"
+      leaveTo="opacity-0"
+    >
+      <aside className="absolute inset-0 w-full h-full flex flex-row">
+        <div className="flex-auto bg-zinc-300/80" onClick={() => props.setOpen(!props.isOpen)}></div>
+        {/*	
+            We must add something in this area	
+          */}
+        <div className="flex-none w-128 p-5 flex flex-col bg-[#f0f0f0]">
+          <TemplateSidebar {...props} />
+        </div>
+      </aside>
+    </Transition>
   )
 }
 
