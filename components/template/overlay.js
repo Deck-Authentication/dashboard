@@ -1,5 +1,6 @@
 import { CheckCircleIcon, TrashIcon } from "@heroicons/react/solid"
 import { useState } from "react"
+import { Transition } from "@headlessui/react"
 
 // compare two arrays regardless of the order of their elements
 function equalsIgnoreOrder(a = [], b = []) {
@@ -16,7 +17,7 @@ function equalsIgnoreOrder(a = [], b = []) {
 }
 
 // This function renders the sidebar under the template tab
-export function TemplateSidebar({
+function TemplateSidebar({
   isOpen,
   setOpen,
   appName, // slack, github, atlassian, or google
@@ -105,5 +106,29 @@ export function TemplateSidebar({
         </div>
       </section>
     </div>
+  )
+}
+
+export default function Overlay(props) {
+  return (
+    <Transition
+      show={props.isOpen}
+      enter="transition-opacity duration-75"
+      enterFrom="opacity-0"
+      enterTo="opacity-100"
+      leave="transition-opacity duration-150"
+      leaveFrom="opacity-100"
+      leaveTo="opacity-0"
+    >
+      <aside className="absolute inset-0 w-full h-full flex flex-row">
+        <div className="flex-auto bg-zinc-300/80" onClick={() => props.setOpen(!props.isOpen)}></div>
+        {/*	
+            We must add something in this area	
+          */}
+        <div className="flex-none w-128 p-5 flex flex-col bg-[#f0f0f0]">
+          <TemplateSidebar {...props} />
+        </div>
+      </aside>
+    </Transition>
   )
 }

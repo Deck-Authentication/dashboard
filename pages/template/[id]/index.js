@@ -1,5 +1,4 @@
 import axios from "axios"
-import Image from "next/image"
 import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 // app logos
@@ -8,8 +7,8 @@ import Google_Group from "../../../assets/Google_Group.svg"
 import Atlassian from "../../../assets/Atlassian.svg"
 import { UserIcon } from "@heroicons/react/solid"
 import { useState } from "react"
-import { Transition } from "@headlessui/react"
-import { TemplateSidebar } from "../../../components/TemplateSidebar"
+import AppCard from "../../../components/template/appCard"
+import Overlay from "../../../components/template/overlay"
 import { PlusCircleIcon } from "@heroicons/react/solid"
 import Router from "next/router"
 import { XCircleIcon } from "@heroicons/react/solid"
@@ -31,9 +30,9 @@ export default function Template({ id }) {
   const [isAtlassianDrawerOpen, setAtlassianDrawerOpen] = useState(false)
   const [isAddUserBtnLoading, setAddUserBtnLoading] = useState(false)
   const [newUserEmail, setNewUserEmail] = useState("")
-  const [slackChannels, setSlackChannels] = useState([])
-  const [googleGroupKeys, setGoogleGroupKeys] = useState([])
-  const [atlassianGroupnames, setAtlassianGroupnames] = useState([])
+  // const [slackChannels, setSlackChannels] = useState([])
+  // const [googleGroupKeys, setGoogleGroupKeys] = useState([])
+  // const [atlassianGroupnames, setAtlassianGroupnames] = useState([])
 
   const { template, isTemplateLoading, isTemplateError } = useTemplate(`${URL.GET_TEMPLATE_BY_ID}/${id}`)
   const { conversations, areConversationsLoading, areConversationsFailed } = useSlackConversations(URL.GET_SLACK_CONVERSATIONS)
@@ -531,7 +530,7 @@ export default function Template({ id }) {
     }
   }
 
-  const sidebarData = [
+  const overlayData = [
     {
       appName: "slack",
       isOpen: isSlackDrawerOpen,
@@ -625,27 +624,11 @@ export default function Template({ id }) {
           </div>
         </div>
       </section>
-      {/* Sidebars appear after clicking one of the card in the app cards list */}
-      {sidebarData.map((data) => Sidebar({ ...data }))}
+      {/* The overlay appear after clicking one of the card in the app cards list with custom data */}
+      {overlayData.map((data) => Overlay({ ...data }))}
       {/* Using React Toastify for message notifications */}
       <ToastContainer />
     </div>
-  )
-}
-
-const AppCard = ({ imgSrc = "", imgAlt = "", name = "", key = "", handleDrawer = () => {} }) => {
-  return (
-    <button
-      key={`${name}_${key}`}
-      className="p-2 border shadow relative rounded-lg hover:bg-gray-200"
-      title={name}
-      onClick={handleDrawer}
-    >
-      <div>
-        <Image src={imgSrc} height={100} width={200} alt={imgAlt} />
-      </div>
-      <p className="w-full text-center">{name}</p>
-    </button>
   )
 }
 
@@ -663,30 +646,6 @@ const MemberCard = ({ email, name, referenceId, key, removeUser }) => {
       </div>
       <p className="w-full text-center">{name}</p>
     </a>
-  )
-}
-
-const Sidebar = (props) => {
-  return (
-    <Transition
-      show={props.isOpen}
-      enter="transition-opacity duration-75"
-      enterFrom="opacity-0"
-      enterTo="opacity-100"
-      leave="transition-opacity duration-150"
-      leaveFrom="opacity-100"
-      leaveTo="opacity-0"
-    >
-      <aside className="absolute inset-0 w-full h-full flex flex-row">
-        <div className="flex-auto bg-zinc-300/80" onClick={() => props.setOpen(!props.isOpen)}></div>
-        {/*	
-            We must add something in this area	
-          */}
-        <div className="flex-none w-128 p-5 flex flex-col bg-[#f0f0f0]">
-          <TemplateSidebar {...props} />
-        </div>
-      </aside>
-    </Transition>
   )
 }
 

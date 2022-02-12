@@ -49,10 +49,10 @@ export default function User() {
         </thead>
         <tbody>
           {users.map((user, key) => (
-            <tr className="hover:mix-blend-multiply cursor-pointer" key={`${user?._id}_${key}`}>
+            <tr className="hover:mix-blend-multiply cursor-pointer" key={`${user._id}_${key}`}>
               <th>{key + 1}</th>
-              <td>{user?.name}</td>
-              <td>{user?.email}</td>
+              <td>{user.name}</td>
+              <td>{user.email}</td>
               <td>{JSON.stringify(user.team)}</td>
             </tr>
           ))}
