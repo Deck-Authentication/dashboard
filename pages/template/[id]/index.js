@@ -1,6 +1,4 @@
-import useSWR from "swr"
 import axios from "axios"
-import Image from "next/image"
 import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 // app logos
@@ -9,85 +7,14 @@ import Google_Group from "../../../assets/Google_Group.svg"
 import Atlassian from "../../../assets/Atlassian.svg"
 import { UserIcon } from "@heroicons/react/solid"
 import { useState } from "react"
-import { Transition } from "@headlessui/react"
-import { TemplateSidebar } from "../../../components/templateSidebar"
+import AppCard from "../../../components/template/appCard"
+import Overlay from "../../../components/template/overlay"
 import { PlusCircleIcon } from "@heroicons/react/solid"
 import Router from "next/router"
 import { XCircleIcon } from "@heroicons/react/solid"
 import Spinner from "../../../components/spinner"
 import { URL } from "../../../constants"
-
-function useTemplate(url = "") {
-  const fetcher = async (url) =>
-    await axios({ method: "get", url })
-      // template returned from backend
-      .then((res) => res.data.template)
-      .catch((err) => {
-        console.error(err)
-        throw new Error(err)
-      })
-  const { data, error } = useSWR(url, fetcher)
-
-  return {
-    template: data,
-    isTemplateLoading: !data,
-    isTemplateError: error,
-  }
-}
-
-function useSlackConversations(url = "") {
-  const fetcher = async (url) =>
-    await axios({ method: "get", url })
-      // slack conversations returned from backend
-      .then((res) => res.data.conversations)
-      .catch((err) => {
-        console.error(err)
-        throw new Error(err)
-      })
-  const { data, error } = useSWR(url, fetcher)
-
-  return {
-    conversations: data,
-    areConversationsLoading: !data,
-    areConversationsFailed: error,
-  }
-}
-
-function useGoogleGroups(url = "") {
-  const fetcher = async (url) =>
-    await axios({ method: "get", url })
-      // google groups returned from backend
-      .then((res) => res.data.groups)
-      .catch((err) => {
-        console.error(err)
-        throw new Error(err)
-      })
-  const { data, error } = useSWR(url, fetcher)
-
-  return {
-    groups: data,
-    areGroupsLoading: !data,
-    areGroupsFailed: error,
-  }
-}
-
-function useAtlassianGroups(url = "") {
-  const fetcher = async (url) =>
-    await axios({ method: "get", url })
-      // google groups returned from backend
-      .then((res) => res.data.groups)
-      .catch((err) => {
-        console.error(err)
-        throw new Error(err)
-      })
-  const { data, error } = useSWR(url, fetcher)
-
-  return {
-    atlassianGroups: data,
-    areGroupsLoading: !data,
-    areGroupsFailed: error,
-  }
-}
+import { useSlackConversations, useGoogleGroups, useTemplate, useAtlassianGroups } from "../../../utils"
 
 const toastOption = {
   autoClose: 4000,
@@ -103,9 +30,9 @@ export default function Template({ id }) {
   const [isAtlassianDrawerOpen, setAtlassianDrawerOpen] = useState(false)
   const [isAddUserBtnLoading, setAddUserBtnLoading] = useState(false)
   const [newUserEmail, setNewUserEmail] = useState("")
-  const [slackChannels, setSlackChannels] = useState([])
-  const [googleGroupKeys, setGoogleGroupKeys] = useState([])
-  const [atlassianGroupnames, setAtlassianGroupnames] = useState([])
+  // const [slackChannels, setSlackChannels] = useState([])
+  // const [googleGroupKeys, setGoogleGroupKeys] = useState([])
+  // const [atlassianGroupnames, setAtlassianGroupnames] = useState([])
 
   const { template, isTemplateLoading, isTemplateError } = useTemplate(`${URL.GET_TEMPLATE_BY_ID}/${id}`)
   const { conversations, areConversationsLoading, areConversationsFailed } = useSlackConversations(URL.GET_SLACK_CONVERSATIONS)
@@ -603,6 +530,39 @@ export default function Template({ id }) {
     }
   }
 
+  const overlayData = [
+    {
+      appName: "slack",
+      isOpen: isSlackDrawerOpen,
+      setOpen: setSlackDrawerOpen,
+      optionType: "channels",
+      optionBadgeColor: "bg-blue-500",
+      allOptions: conversations,
+      savedOptions: slack.channels,
+      handleOptionsUpdate: handleSlackChannelsUpdate,
+    },
+    {
+      appName: "google",
+      isOpen: isGoogleDrawerOpen,
+      setOpen: setGoogleDrawerOpen,
+      optionType: "groups",
+      optionBadgeColor: "bg-green-500",
+      allOptions: groups,
+      savedOptions: google.groupKeys,
+      handleOptionsUpdate: handleGoogleGroupsUpdate,
+    },
+    {
+      appName: "atlassian",
+      isOpen: isAtlassianDrawerOpen,
+      setOpen: setAtlassianDrawerOpen,
+      optionType: "groups",
+      optionBadgeColor: "bg-indigo-500",
+      allOptions: atlassianGroups,
+      savedOptions: atlassian.groupnames,
+      handleOptionsUpdate: handleAtlassianGroupsUpdate,
+    },
+  ]
+
   return (
     <div className="w-full h-full flex flex-col relative justify-items-start">
       <section className="p-5">
@@ -664,116 +624,11 @@ export default function Template({ id }) {
           </div>
         </div>
       </section>
-      {/* Sidebars appear after clicking one of the card in the app cards list */}
-      <Transition
-        show={isSlackDrawerOpen}
-        enter="transition-opacity duration-75"
-        enterFrom="opacity-0"
-        enterTo="opacity-100"
-        leave="transition-opacity duration-150"
-        leaveFrom="opacity-100"
-        leaveTo="opacity-0"
-      >
-        <aside className="absolute inset-0 w-full h-full flex flex-row">
-          <div className="flex-auto bg-zinc-300/80" onClick={() => setSlackDrawerOpen(!isSlackDrawerOpen)}></div>
-          {/*
-            We must add something in this area
-          */}
-          <div className="flex-none w-128 p-5 flex flex-col bg-[#f0f0f0]">
-            <TemplateSidebar
-              {...{
-                isOpen: isSlackDrawerOpen,
-                setOpen: setSlackDrawerOpen,
-                optionType: "channels",
-                optionBadgeColor: "bg-blue-500",
-                allOptions: conversations,
-                appName: "slack",
-                savedOptions: slack.channels,
-                handleOptionsUpdate: handleSlackChannelsUpdate,
-              }}
-            />
-          </div>
-        </aside>
-      </Transition>
-      <Transition
-        show={isGoogleDrawerOpen}
-        enter="transition-opacity duration-75"
-        enterFrom="opacity-0"
-        enterTo="opacity-100"
-        leave="transition-opacity duration-150"
-        leaveFrom="opacity-100"
-        leaveTo="opacity-0"
-      >
-        <aside className="absolute inset-0 w-full h-full flex flex-row">
-          <div className="flex-auto bg-zinc-300/80" onClick={() => setGoogleDrawerOpen(!isGoogleDrawerOpen)}></div>
-          {/*
-            We must add something in this area
-          */}
-          <div className="flex-none w-128 p-5 flex flex-col bg-[#f0f0f0]">
-            <TemplateSidebar
-              {...{
-                isOpen: isGoogleDrawerOpen,
-                setOpen: setGoogleDrawerOpen,
-                optionType: "groups",
-                optionBadgeColor: "bg-green-500",
-                allOptions: groups,
-                appName: "google",
-                savedOptions: google.groupKeys,
-                handleOptionsUpdate: handleGoogleGroupsUpdate,
-              }}
-            />
-          </div>
-        </aside>
-      </Transition>
-      <Transition
-        show={isAtlassianDrawerOpen}
-        enter="transition-opacity duration-75"
-        enterFrom="opacity-0"
-        enterTo="opacity-100"
-        leave="transition-opacity duration-150"
-        leaveFrom="opacity-100"
-        leaveTo="opacity-0"
-      >
-        <aside className="absolute inset-0 w-full h-full flex flex-row">
-          <div className="flex-auto bg-zinc-300/80" onClick={() => setAtlassianDrawerOpen(!isAtlassianDrawerOpen)}></div>
-          {/*
-            We must add something in this area
-          */}
-          <div className="flex-none w-128 p-5 flex flex-col bg-[#f0f0f0]">
-            <TemplateSidebar
-              {...{
-                isOpen: isAtlassianDrawerOpen,
-                setOpen: setAtlassianDrawerOpen,
-                optionType: "groups",
-                optionBadgeColor: "bg-indigo-500",
-                allOptions: atlassianGroups,
-                appName: "atlassian",
-                savedOptions: atlassian.groupnames,
-                handleOptionsUpdate: handleAtlassianGroupsUpdate,
-              }}
-            />
-          </div>
-        </aside>
-      </Transition>
+      {/* The overlay appear after clicking one of the card in the app cards list with custom data */}
+      {overlayData.map((data) => Overlay({ ...data }))}
       {/* Using React Toastify for message notifications */}
       <ToastContainer />
     </div>
-  )
-}
-
-const AppCard = ({ imgSrc = "", imgAlt = "", name = "", key = "", handleDrawer = () => {} }) => {
-  return (
-    <button
-      key={`${name}_${key}`}
-      className="p-2 border shadow relative rounded-lg hover:bg-gray-200"
-      title={name}
-      onClick={handleDrawer}
-    >
-      <div>
-        <Image src={imgSrc} height={100} width={200} alt={imgAlt} />
-      </div>
-      <p className="w-full text-center">{name}</p>
-    </button>
   )
 }
 
