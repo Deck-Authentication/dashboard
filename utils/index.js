@@ -72,3 +72,15 @@ export function useAtlassianGroups(url = "") {
     areGroupsFailed: error,
   }
 }
+
+export function useUsers(url = "") {
+  const fetcher = (_url) => axios.get(_url).then((res) => res.data.users)
+
+  const { data, error } = useSWR(url, fetcher)
+
+  return {
+    users: data,
+    areUsersBeingLoaded: !data,
+    isUsersLoadingFailed: error,
+  }
+}

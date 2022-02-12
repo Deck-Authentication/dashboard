@@ -110,6 +110,7 @@ function TemplateSidebar({
 }
 
 export default function Overlay(props) {
+  // props will include multiple fields as { isOpen, setOpen, appName, optionType, optionBadgeColor, allOptions, savedOptions, handleOptionsUpdate }
   return (
     <Transition
       show={props.isOpen}

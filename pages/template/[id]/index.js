@@ -5,16 +5,15 @@ import "react-toastify/dist/ReactToastify.css"
 import Slack_Mark from "../../../assets/Slack_Mark.svg"
 import Google_Group from "../../../assets/Google_Group.svg"
 import Atlassian from "../../../assets/Atlassian.svg"
-import { UserIcon } from "@heroicons/react/solid"
 import { useState } from "react"
 import AppCard from "../../../components/template/appCard"
+import MemberCard from "../../../components/template/memberCard"
 import Overlay from "../../../components/template/overlay"
 import { PlusCircleIcon } from "@heroicons/react/solid"
 import Router from "next/router"
-import { XCircleIcon } from "@heroicons/react/solid"
 import Spinner from "../../../components/spinner"
 import { URL } from "../../../constants"
-import { useSlackConversations, useGoogleGroups, useTemplate, useAtlassianGroups } from "../../../utils"
+import { useSlackConversations, useGoogleGroups, useTemplate, useAtlassianGroups, useUsers } from "../../../utils"
 
 const toastOption = {
   autoClose: 4000,
@@ -28,6 +27,7 @@ export default function Template({ id }) {
   const [isSlackDrawerOpen, setSlackDrawerOpen] = useState(false)
   const [isGoogleDrawerOpen, setGoogleDrawerOpen] = useState(false)
   const [isAtlassianDrawerOpen, setAtlassianDrawerOpen] = useState(false)
+  const [isMemberDrawerOpen, setMemberDrawerOpen] = useState(false)
   const [isAddUserBtnLoading, setAddUserBtnLoading] = useState(false)
   const [newUserEmail, setNewUserEmail] = useState("")
   // const [slackChannels, setSlackChannels] = useState([])
@@ -38,6 +38,7 @@ export default function Template({ id }) {
   const { conversations, areConversationsLoading, areConversationsFailed } = useSlackConversations(URL.GET_SLACK_CONVERSATIONS)
   const { groups, areGroupsLoading, areGroupsFailed } = useGoogleGroups(URL.GET_GOOGLE_GROUPS)
   const { atlassianGroups, areAtlassianGroupsLoading, areAtlassianGroupsFailed } = useAtlassianGroups(URL.GET_ATLASSIAN_GROUPS)
+  const { users, areUsersBeingLoaded, isUsersLoadingFailed } = useUsers(URL.LIST_ALL_USERS)
 
   if (isTemplateError) {
     return (
@@ -337,6 +338,8 @@ export default function Template({ id }) {
     return
   }
 
+  const handleMembersUpdate = async (addedMembers) => {}
+
   // invite the user to all directories in the template base on the user's email
   const inviteAll = async (email) => {
     let promises = []
@@ -561,6 +564,16 @@ export default function Template({ id }) {
       savedOptions: atlassian.groupnames,
       handleOptionsUpdate: handleAtlassianGroupsUpdate,
     },
+    {
+      appName: "members",
+      isOpen: isMemberDrawerOpen,
+      setOpen: setMemberDrawerOpen,
+      optionType: "members",
+      optionBadgeColor: "bg-orange-500",
+      allOptions: atlassianGroups,
+      savedOptions: atlassian.groupnames,
+      handleOptionsUpdate: handleMembersUpdate,
+    },
   ]
 
   return (
@@ -581,18 +594,43 @@ export default function Template({ id }) {
               )}
           </div>
         </div>
+        {/* Members section */}
         <div>
           <h2 className="text-xl mb-2">Members ({members.length})</h2>
           <div className="flex flex-row space-x-8">
             {members.map((member, key) => MemberCard({ ...member, key, removeUser: removeUser }))}
-            <label
-              htmlFor="invite-user-modal"
+            {/* Add a new member card */}
+            <button
               style={{ height: 150, width: 225 }}
               className="p-2 flex justify-center items-center border rounded-lg shadow cursor-pointer hover:bg-gray-200"
             >
               <PlusCircleIcon className="h-10 w-10 text-blue-500" />
-            </label>
-            <input type="checkbox" id="invite-user-modal" className="modal-toggle" />
+            </button>
+          </div>
+        </div>
+      </section>
+      {/* The overlay appear after clicking one of the card in the app cards list with custom data */}
+      {overlayData.map((data) => Overlay({ ...data }))}
+      {/* Using React Toastify for message notifications */}
+      <ToastContainer />
+    </div>
+  )
+}
+
+export async function getServerSideProps(context) {
+  // Fetch id as the slug of the page from the context.params
+  // set id's default value as undefined to avoid TypeError
+  const { params: { id } = { id: undefined } } = context
+
+  return {
+    props: {
+      id,
+    },
+  }
+}
+
+/* This code sits under the button of the Add a new member card
+<input type="checkbox" id="invite-user-modal" className="modal-toggle" />
             <div className="modal">
               <div className="modal-box bg-white p-10">
                 <input
@@ -621,42 +659,4 @@ export default function Template({ id }) {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-      {/* The overlay appear after clicking one of the card in the app cards list with custom data */}
-      {overlayData.map((data) => Overlay({ ...data }))}
-      {/* Using React Toastify for message notifications */}
-      <ToastContainer />
-    </div>
-  )
-}
-
-const MemberCard = ({ email, name, referenceId, key, removeUser }) => {
-  return (
-    <a
-      key={`${name}_${referenceId}_${key}`}
-      href="#"
-      className="p-2 border shadow relative rounded-lg hover:bg-gray-200 flex flex-col relative"
-      title={name}
-    >
-      <XCircleIcon className="absolute top-0 right-0 m-2 w-5 h-5" onClick={async () => await removeUser(email)} />
-      <div>
-        <UserIcon style={{ height: 100, width: 200 }} />
-      </div>
-      <p className="w-full text-center">{name}</p>
-    </a>
-  )
-}
-
-export async function getServerSideProps(context) {
-  // Fetch id as the slug of the page from the context.params
-  // set id's default value as undefined to avoid TypeError
-  const { params: { id } = { id: undefined } } = context
-
-  return {
-    props: {
-      id,
-    },
-  }
-}
+*/
