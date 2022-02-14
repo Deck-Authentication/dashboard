@@ -3,10 +3,11 @@ const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8080"
 export const URL = {
   // Templates
   GET_TEMPLATE_BY_ID: `${BACKEND_URL}/template/get-template-by-id`,
-  UPDATE_TEMPLATE_MEMBER: `${BACKEND_URL}/template/update-template/members`,
+  UPDATE_TEMPLATE_MEMBER: `${BACKEND_URL}/template/update/members`,
   // Users
-  GET_USER_BY_EMAIL: `${BACKEND_URL}/users/get-user`,
+  GET_USER_BY_ID: `${BACKEND_URL}/users/get-user`,
   LIST_ALL_USERS: `${BACKEND_URL}/users/list-all`,
+  UPDATE_USER_TEAM: `${BACKEND_URL}/users/update/team`,
   // Slack
   UPDATE_SLACK_TEMPLATE: `${BACKEND_URL}/template/update-template/app/slack`,
   GET_SLACK_CONVERSATIONS: `${BACKEND_URL}/slack/list-conversations`,

@@ -1,5 +1,6 @@
 import { CheckCircleIcon, TrashIcon } from "@heroicons/react/solid"
 import { useState } from "react"
+import { Transition } from "@headlessui/react"
 
 // compare two arrays regardless of the order of their elements
 function equalsIgnoreOrder(a = [], b = []) {
@@ -15,51 +16,70 @@ function equalsIgnoreOrder(a = [], b = []) {
   return true
 }
 
-// This function renders the sidebar for the Slack app with channels search view and list of channels in the template.
-export function DeckSidebar({ isOpen, setOpen, allConversations, templateConversations, handleSlackChannelsUpdate }) {
-  const [addedChannels, setAddedChannels] = useState(templateConversations)
+// This function renders the sidebar under the template tab
+function TemplateSidebar({
+  isOpen,
+  setOpen,
+  appName, // slack, github, atlassian, google, or members
+  optionType,
+  optionBadgeColor,
+  allOptions,
+  savedOptions,
+  handleOptionsUpdate,
+}) {
+  const [selectedOptions, setSelectedOptions] = useState(savedOptions)
   const [isSaveButtonLoading, setSaveButtonLoading] = useState(false)
 
   // if the added channels are the same as the template channels from the database,
   // we should not update the template and allow the save button to be active
-  const shouldSaveActive = !equalsIgnoreOrder(addedChannels, templateConversations)
+  const shouldSaveActive = !equalsIgnoreOrder(selectedOptions, savedOptions)
 
-  const removeChannel = (_channel) => {
-    setAddedChannels(addedChannels.filter((channel) => channel !== _channel))
+  const removeOption = (_option) => {
+    setSelectedOptions(selectedOptions.filter((option) => option !== _option))
   }
 
   return (
     <div className="w-full h-full divide-y divide-gray-300 space-y-4 p-3">
       <section className="w-full h-1/2 flex flex-col">
-        <input placeholder="Search channels" className="card w-full mb-4" style={{ padding: "0.5rem" }} />
+        <input placeholder={`Search ${optionType?.toLowerCase()}`} className="card w-full mb-4" style={{ padding: "0.5rem" }} />
         <ul className="search-result flex flex-col space-y-2 max-h-80 overflow-y-auto">
-          {allConversations.map((conversation, key) => {
-            const isConversationSelected = addedChannels.includes(conversation.name)
+          {allOptions.map((option, key) => {
+            const selectedOptionIds = selectedOptions.map((opt) => opt._id)
+            const isOptionSelected = selectedOptionIds.includes(option._id)
 
             return (
               <li
-                key={`${conversation.id}_${key}`}
+                key={`${option.id}_${key}`}
                 className={`flex flex-row justify-between rounded-lg shadow-lg hover:bg-zinc-200 ${
-                  isConversationSelected ? "bg-gray-200 cursor-not-allowed" : "cursor-pointer"
+                  isOptionSelected ? "bg-gray-200 cursor-not-allowed" : "cursor-pointer"
                 }`}
                 style={{ padding: "0.5rem" }}
-                onClick={() => !isConversationSelected && setAddedChannels([...addedChannels, conversation.name])}
-                disabled={isConversationSelected}
+                onClick={() =>
+                  !isOptionSelected &&
+                  setSelectedOptions([...selectedOptions, { _id: option._id, email: option.email, name: option.name }])
+                }
+                disabled={isOptionSelected}
               >
-                <p>#{conversation.name}</p>
-                {isConversationSelected && <CheckCircleIcon className="h-5 w-5 text-green-400" />}
+                <p>
+                  {option.name} ({option.email})
+                </p>
+                {isOptionSelected && <CheckCircleIcon className="h-5 w-5 text-green-400" />}
               </li>
             )
           })}
         </ul>
       </section>
       <section className="w-full flex flex-col pt-2 h-1/2">
-        <h2 className="defined-badge p-1 mt-4 mb-2 w-fit bg-blue-400 text-white">ADDED CHANNELS</h2>
+        <h2 className={`defined-badge p-1 mt-4 mb-2 w-fit ${optionBadgeColor} text-white`}>
+          ADDED {optionType?.toUpperCase()}
+        </h2>
         <ul className="space-y-2 divide-y divide-neutral-300 h-full overflow-y-auto">
-          {addedChannels.map((conversation, key) => (
-            <li key={`${conversation}_${key}`} className="flex flex row justify-between" style={{ padding: "0.5rem" }}>
-              <p>#{conversation}</p>
-              <TrashIcon className="h-5 w-5 hover:text-red-400 cursor-pointer" onClick={() => removeChannel(conversation)} />
+          {selectedOptions.map((option, key) => (
+            <li key={`${option}_${key}`} className="flex flex row justify-between" style={{ padding: "0.5rem" }}>
+              <p>
+                {option.name} ({option.email})
+              </p>
+              <TrashIcon className="h-5 w-5 hover:text-red-400 cursor-pointer" onClick={() => removeOption(option)} />
             </li>
           ))}
         </ul>
@@ -70,9 +90,10 @@ export function DeckSidebar({ isOpen, setOpen, allConversations, templateConvers
             } ${isSaveButtonLoading ? "loading" : ""} bg-indigo-500`}
             disabled={!shouldSaveActive}
             onClick={async (event) => {
-              event.preventDefault
+              event.preventDefault()
               setSaveButtonLoading(true)
-              await handleSlackChannelsUpdate(addedChannels)
+              const prevMemberList = savedOptions.map((option) => option._id)
+              await handleOptionsUpdate(selectedOptions, prevMemberList)
               setSaveButtonLoading(false)
             }}
           >
@@ -84,5 +105,31 @@ export function DeckSidebar({ isOpen, setOpen, allConversations, templateConvers
         </div>
       </section>
     </div>
+  )
+}
+
+export default function MemberOverlay(props) {
+  // props will include multiple fields as { isOpen, setOpen, appName, optionType, optionBadgeColor, allOptions, savedOptions, handleOptionsUpdate }
+  return (
+    <Transition
+      show={props.isOpen}
+      enter="transition-opacity duration-75"
+      enterFrom="opacity-0"
+      enterTo="opacity-100"
+      leave="transition-opacity duration-150"
+      leaveFrom="opacity-100"
+      leaveTo="opacity-0"
+      key={`${props.appName}_${props.key}`}
+    >
+      <aside className="absolute inset-0 w-full h-full flex flex-row">
+        <div className="flex-auto bg-zinc-300/80" onClick={() => props.setOpen(!props.isOpen)}></div>
+        {/*	
+            We must add something in this area	
+          */}
+        <div className="flex-none w-128 p-5 flex flex-col bg-[#f0f0f0]">
+          <TemplateSidebar {...props} />
+        </div>
+      </aside>
+    </Transition>
   )
 }

@@ -41,7 +41,7 @@ export function useTemplate(url = "") {
   const fetchTemplates = async (url) =>
     await axios({ method: "get", url })
       // template returned from backend
-      .then((res) => res.data.template)
+      .then((res) => res.data.message)
       .catch((err) => {
         console.error(err)
         throw new Error(err)
@@ -70,5 +70,17 @@ export function useAtlassianGroups(url = "") {
     atlassianGroups: data,
     areGroupsLoading: !data,
     areGroupsFailed: error,
+  }
+}
+
+export function useUsers(url = "") {
+  const fetcher = (_url) => axios.get(_url).then((res) => res.data.users)
+
+  const { data, error } = useSWR(url, fetcher)
+
+  return {
+    users: data,
+    areUsersBeingLoaded: !data,
+    isUsersLoadingFailed: error,
   }
 }

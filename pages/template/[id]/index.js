@@ -5,16 +5,16 @@ import "react-toastify/dist/ReactToastify.css"
 import Slack_Mark from "../../../assets/Slack_Mark.svg"
 import Google_Group from "../../../assets/Google_Group.svg"
 import Atlassian from "../../../assets/Atlassian.svg"
-import { UserIcon } from "@heroicons/react/solid"
 import { useState } from "react"
 import AppCard from "../../../components/template/appCard"
+import MemberCard from "../../../components/template/memberCard"
+import MemberOverlay from "../../../components/members"
 import Overlay from "../../../components/template/overlay"
 import { PlusCircleIcon } from "@heroicons/react/solid"
 import Router from "next/router"
-import { XCircleIcon } from "@heroicons/react/solid"
 import Spinner from "../../../components/spinner"
 import { URL } from "../../../constants"
-import { useSlackConversations, useGoogleGroups, useTemplate, useAtlassianGroups } from "../../../utils"
+import { useSlackConversations, useGoogleGroups, useTemplate, useAtlassianGroups, useUsers } from "../../../utils"
 
 const toastOption = {
   autoClose: 4000,
@@ -28,16 +28,17 @@ export default function Template({ id }) {
   const [isSlackDrawerOpen, setSlackDrawerOpen] = useState(false)
   const [isGoogleDrawerOpen, setGoogleDrawerOpen] = useState(false)
   const [isAtlassianDrawerOpen, setAtlassianDrawerOpen] = useState(false)
+  const [isMemberDrawerOpen, setMemberDrawerOpen] = useState(false)
   const [isAddUserBtnLoading, setAddUserBtnLoading] = useState(false)
-  const [newUserEmail, setNewUserEmail] = useState("")
   // const [slackChannels, setSlackChannels] = useState([])
   // const [googleGroupKeys, setGoogleGroupKeys] = useState([])
   // const [atlassianGroupnames, setAtlassianGroupnames] = useState([])
-
   const { template, isTemplateLoading, isTemplateError } = useTemplate(`${URL.GET_TEMPLATE_BY_ID}/${id}`)
   const { conversations, areConversationsLoading, areConversationsFailed } = useSlackConversations(URL.GET_SLACK_CONVERSATIONS)
   const { groups, areGroupsLoading, areGroupsFailed } = useGoogleGroups(URL.GET_GOOGLE_GROUPS)
   const { atlassianGroups, areAtlassianGroupsLoading, areAtlassianGroupsFailed } = useAtlassianGroups(URL.GET_ATLASSIAN_GROUPS)
+  const { users, areUsersBeingLoaded, isUsersLoadingFailed } = useUsers(URL.LIST_ALL_USERS)
+  // fetch all apps and template's members list from the data received from backend
 
   if (isTemplateError) {
     return (
@@ -107,15 +108,37 @@ export default function Template({ id }) {
       </div>
     )
 
-  // fetch all apps and template's members list from the data received from backend
+  if (isUsersLoadingFailed) {
+    return (
+      <div>
+        Error loading template members. Contact us at{" "}
+        <a href="mailto:peter@withdeck.com" className="underline text-blue-800">
+          peter@withdeck.com
+        </a>{" "}
+        and we will resolve the issue as soon as possible.
+      </div>
+    )
+  } else if (areUsersBeingLoaded)
+    return (
+      <div className="w-full h-full flex justify-center items-center">
+        <Spinner />
+      </div>
+    )
+
   const {
     app: { slack, google, atlassian } = {
       slack: undefined,
       google: undefined,
       atlassian: undefined,
     },
+    // members is an array of reference Ids to users
     members,
   } = template
+
+  // since we only save the members as a list of reference Ids to users,
+  // we have to filter the users list by referenceIds to get the full user data
+  const memberList = users.filter((user) => members.includes(user._id))
+  console.log("memberList: ", memberList)
 
   // filter out missing apps
   const appCardsData = [
@@ -140,11 +163,11 @@ export default function Template({ id }) {
       imgAlt: "Atlassian",
       handleDrawer: () => setAtlassianDrawerOpen(!isAtlassianDrawerOpen),
     },
-  ].filter((app) => app.appData !== undefined)
+  ].filter((_app) => _app.appData !== undefined)
 
   const handleSlackChannelsUpdate = async (addedChannels) => {
     // This code has a bug in edge cases.
-    const memberEmails = members.map((member) => member.email)
+    const memberEmails = memberList.map((member) => member.email)
 
     // Remove users from every existing channel in the template.
     memberEmails.length &&
@@ -211,7 +234,7 @@ export default function Template({ id }) {
   }
 
   const handleGoogleGroupsUpdate = async (addedGroups) => {
-    const memberEmails = members.map((member) => member.email)
+    const memberEmails = memberList.map((member) => member.email)
 
     // Remove users from every existing google group in the template.
     memberEmails.length &&
@@ -270,7 +293,7 @@ export default function Template({ id }) {
   }
 
   const handleAtlassianGroupsUpdate = async (addedGroups) => {
-    const memberEmails = members.map((member) => member.email)
+    const memberEmails = memberList.map((member) => member.email)
     // Remove users from every existing atlassian jira group in the template.
     memberEmails.length &&
       atlassian?.groupnames?.length &&
@@ -387,6 +410,45 @@ export default function Template({ id }) {
       })
   }
 
+  // updae the members field in the template collection and the team field in the user collection
+  const handleMembersUpdate = async (newMembers, prevMemberList) => {
+    newMembers.map(async (newMember) => {
+      // call the backend to add the user id to the template under the members field
+      await axios({
+        method: "put",
+        url: URL.UPDATE_TEMPLATE_MEMBER,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: JSON.stringify({
+          id: id,
+          members: prevMemberList.concat(newMember._id),
+        }),
+      }).catch((error) => {
+        console.log(error)
+        throw new Error(error)
+      })
+
+      // add users to every directory in Slack, Google Group, and Atlassian Cloud
+      await inviteAll(newMember.email.trim())
+        .then((_) => Router.reload(window.location.pathname))
+        .catch((err) => {
+          console.log(err)
+          throw new Error(err)
+        })
+
+      // update the team array field for that user by appending an object of template name and template id
+      await axios({
+        method: "put",
+        url: URL.UPDATE_USER_TEAM,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: JSON.stringify({ _id: newMember._id, team: newMember.team.concat(id) }),
+      })
+    })
+  }
+
   // remove users from all directories in the template
   const removeAll = async (email) => {
     let promises = []
@@ -439,95 +501,40 @@ export default function Template({ id }) {
       })
   }
 
-  const addUser = async (email) => {
-    if (email.trim().length) {
-      // search for the user in the database
-      const user = await axios({
-        method: "get",
-        url: `${URL.GET_USER_BY_EMAIL}/${email}`,
-        headers: {
-          "Content-Type": "application/json",
-        },
+  // This needs to be changed to reflect the user id.
+  const removeUser = async (_id) => {
+    // call the backend to remove the user from the template
+    console.log("_id inside removeUser: ", _id)
+    const newMemberList = memberList.filter((member) => member._id !== _id)
+    const removedMemberEmail = memberList.find((member) => member._id === _id).email
+    await axios({
+      method: "put",
+      url: URL.UPDATE_TEMPLATE_MEMBER,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: JSON.stringify({
+        id: id,
+        members: newMemberList,
+      }),
+    })
+      .then((response) => {
+        console.log(JSON.stringify(response.data))
       })
-        .then((response) => {
-          console.log(JSON.stringify(response.data))
-          return response.data.user
-        })
-        .catch((error) => {
-          console.log(error)
-          throw new Error(error)
-        })
-      // get the user name and referenceId
-      // call the backend to add the user to the template
-      await axios({
-        method: "put",
-        url: URL.UPDATE_TEMPLATE_MEMBER,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        data: JSON.stringify({
-          id: id,
-          members: [
-            ...members,
-            {
-              email: email,
-              name: user.name,
-              referenceId: user._id.toString(),
-            },
-          ],
-        }),
+      .catch((error) => {
+        console.log(error)
+        throw new Error(error)
       })
-        .then((response) => {
-          console.log(JSON.stringify(response.data))
-        })
-        .catch((error) => {
-          console.log(error)
-          throw new Error(error)
-        })
 
-      // add users to every directory in Slack, Google Group, and Atlassian Cloud
-      await inviteAll(email.trim())
-        .then((_) => Router.reload(window.location.pathname))
-        .catch((err) => {
-          console.log(err)
-          throw new Error(err)
-        })
-    }
-  }
-
-  const removeUser = async (email) => {
-    if (email.trim().length) {
-      // call the backend to remove the user from the template
-      const newMemberList = members.filter((member) => member.email !== email)
-      await axios({
-        method: "put",
-        url: URL.UPDATE_TEMPLATE_MEMBER,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        data: JSON.stringify({
-          id: id,
-          members: newMemberList,
-        }),
+    // remove users from every directory in Slack, Google Group, and Atlassian Cloud
+    await removeAll(removedMemberEmail.trim())
+      .then((_) => Router.reload(window.location.pathname))
+      .catch((err) => {
+        console.log(err)
+        // throw new Error(err)
       })
-        .then((response) => {
-          console.log(JSON.stringify(response.data))
-        })
-        .catch((error) => {
-          console.log(error)
-          throw new Error(error)
-        })
 
-      // remove users from every directory in Slack, Google Group, and Atlassian Cloud
-      await removeAll(email.trim())
-        .then((_) => Router.reload(window.location.pathname))
-        .catch((err) => {
-          console.log(err)
-          // throw new Error(err)
-        })
-
-      Router.reload(window.location.pathname)
-    }
+    Router.reload(window.location.pathname)
   }
 
   const overlayData = [
@@ -563,6 +570,17 @@ export default function Template({ id }) {
     },
   ]
 
+  const membersOverlayData = {
+    appName: "members",
+    isOpen: isMemberDrawerOpen,
+    setOpen: setMemberDrawerOpen,
+    optionType: "members",
+    optionBadgeColor: "bg-orange-500",
+    allOptions: users,
+    savedOptions: memberList,
+    handleOptionsUpdate: handleMembersUpdate,
+  }
+
   return (
     <div className="w-full h-full flex flex-col relative justify-items-start">
       <section className="p-5">
@@ -581,18 +599,48 @@ export default function Template({ id }) {
               )}
           </div>
         </div>
+        {/* Members section */}
         <div>
           <h2 className="text-xl mb-2">Members ({members.length})</h2>
           <div className="flex flex-row space-x-8">
-            {members.map((member, key) => MemberCard({ ...member, key, removeUser: removeUser }))}
-            <label
-              htmlFor="invite-user-modal"
+            {memberList.map((member, key) => MemberCard({ ...member, key, removeUser: removeUser }))}
+            {/* Add a new member card */}
+            <button
               style={{ height: 150, width: 225 }}
+              onClick={(event) => {
+                event.preventDefault()
+                setMemberDrawerOpen(!isMemberDrawerOpen)
+              }}
               className="p-2 flex justify-center items-center border rounded-lg shadow cursor-pointer hover:bg-gray-200"
             >
               <PlusCircleIcon className="h-10 w-10 text-blue-500" />
-            </label>
-            <input type="checkbox" id="invite-user-modal" className="modal-toggle" />
+            </button>
+          </div>
+        </div>
+      </section>
+      {/* The overlay appear after clicking one of the card in the app cards list with custom data */}
+      {overlayData.map((data, id) => Overlay({ ...data, key: id }))}
+      {MemberOverlay(membersOverlayData)}
+      {/* Using React Toastify for message notifications */}
+      <ToastContainer />
+    </div>
+  )
+}
+
+export async function getServerSideProps(context) {
+  // Fetch id as the slug of the page from the context.params
+  // set id's default value as undefined to avoid TypeError
+  const { params: { id } = { id: undefined } } = context
+
+  return {
+    props: {
+      id,
+    },
+  }
+}
+
+/* This code sits under the button of the Add a new member card
+<input type="checkbox" id="invite-user-modal" className="modal-toggle" />
             <div className="modal">
               <div className="modal-box bg-white p-10">
                 <input
@@ -621,42 +669,49 @@ export default function Template({ id }) {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-      {/* The overlay appear after clicking one of the card in the app cards list with custom data */}
-      {overlayData.map((data) => Overlay({ ...data }))}
-      {/* Using React Toastify for message notifications */}
-      <ToastContainer />
-    </div>
-  )
-}
+*/
 
-const MemberCard = ({ email, name, referenceId, key, removeUser }) => {
-  return (
-    <a
-      key={`${name}_${referenceId}_${key}`}
-      href="#"
-      className="p-2 border shadow relative rounded-lg hover:bg-gray-200 flex flex-col relative"
-      title={name}
-    >
-      <XCircleIcon className="absolute top-0 right-0 m-2 w-5 h-5" onClick={async () => await removeUser(email)} />
-      <div>
-        <UserIcon style={{ height: 100, width: 200 }} />
-      </div>
-      <p className="w-full text-center">{name}</p>
-    </a>
-  )
-}
+const addUser = async (id) => {
+  if (id.trim().length) {
+    // search for the user in the database
+    const user = await axios
+      .get(URL.GET_USER_BY_ID, { params: { id } })
+      .then((response) => {
+        if (response.data.ok) return response.data.message
 
-export async function getServerSideProps(context) {
-  // Fetch id as the slug of the page from the context.params
-  // set id's default value as undefined to avoid TypeError
-  const { params: { id } = { id: undefined } } = context
+        throw new Error(response.data.message)
+      })
+      .catch((error) => {
+        console.log(error)
+        throw new Error(error)
+      })
+    // get the user name and referenceId
+    // call the backend to add the user to the template
+    await axios({
+      method: "put",
+      url: URL.UPDATE_TEMPLATE_MEMBER,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: JSON.stringify({
+        id: id,
+        members: members.concat(user._id.toString()),
+      }),
+    })
+      .then((response) => {
+        console.log(JSON.stringify(response.data))
+      })
+      .catch((error) => {
+        console.log(error)
+        throw new Error(error)
+      })
 
-  return {
-    props: {
-      id,
-    },
+    // add users to every directory in Slack, Google Group, and Atlassian Cloud
+    await inviteAll(user.email.trim())
+      .then((_) => Router.reload(window.location.pathname))
+      .catch((err) => {
+        console.log(err)
+        throw new Error(err)
+      })
   }
 }

@@ -1,22 +1,9 @@
 import { URL } from "../../constants"
 import Spinner from "../../components/spinner"
-import useSWR from "swr"
-import axios from "axios"
-
-function useUsers(url = "") {
-  const fetcher = (url) => axios.get(url).then((res) => res.data.users)
-
-  const { data, error } = useSWR(URL.LIST_ALL_USERS, fetcher)
-
-  return {
-    users: data,
-    areUsersBeingLoaded: !data,
-    isUsersLoadingFailed: error,
-  }
-}
+import { useUsers } from "../../utils"
 
 export default function User() {
-  const { users, areUsersBeingLoaded, isUsersLoadingFailed } = useUsers()
+  const { users, areUsersBeingLoaded, isUsersLoadingFailed } = useUsers(URL.LIST_ALL_USERS)
 
   if (isUsersLoadingFailed)
     return (
