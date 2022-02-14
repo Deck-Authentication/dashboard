@@ -1,4 +1,4 @@
-const BACKEND_URL = /*"https://api.withdeck.com"*/ "https://api.withdeck.com"
+const BACKEND_URL = /*"https://api.withdeck.com" || "localhost:8080"*/ "https://api.withdeck.com"
 
 export const URL = {
   // Templates

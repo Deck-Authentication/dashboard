@@ -4,7 +4,7 @@ import { useUsers, useTemplate } from "../../utils"
 
 export default function User() {
   const { users, areUsersBeingLoaded, isUsersLoadingFailed } = useUsers(URL.LIST_ALL_USERS)
-  const { template, isTemplateLoading, isTemplateError } = useTemplate(URL.GET_TEMPLATE)
+  const { template, isTemplateLoading, isTemplateError } = useTemplate(URL.LIST_ALL_TEMPLATES)
 
   if (isUsersLoadingFailed)
     return (
@@ -24,6 +24,34 @@ export default function User() {
       </div>
     )
 
+  if (isTemplateError)
+    return (
+      <div>
+        Error loading the teams for users. Contact us at{" "}
+        <a href="mailto:peter@withdeck.com" className="underline text-blue-800">
+          peter@withdeck.com
+        </a>{" "}
+        and we will resolve the issue as soon as possible.
+      </div>
+    )
+  if (isTemplateLoading)
+    return (
+      // Loading data
+      <div className="w-full h-full flex justify-center items-center">
+        <Spinner />
+      </div>
+    )
+
+  const getTeams = (teamIds) => {
+    const teams = []
+    teamIds.forEach((id) => {
+      const team = template.find((t) => t._id.toString() === id)
+      if (team) teams.push(team.name)
+    })
+
+    return teams.join(" | ")
+  }
+
   return (
     <div id="user" className="overflow-x-auto" data-theme="light">
       <table className="table w-full table-zebra">
@@ -41,7 +69,7 @@ export default function User() {
               <th>{key + 1}</th>
               <td>{user.name}</td>
               <td>{user.email}</td>
-              <td>{JSON.stringify(user.team)}</td>
+              <td>{getTeams(user.team)}</td>
             </tr>
           ))}
         </tbody>
