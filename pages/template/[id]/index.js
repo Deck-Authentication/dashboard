@@ -24,7 +24,7 @@ const toastOption = {
   pauseOnHover: true,
 }
 
-export default function Template({ id }) {
+export default function Template({ id, BACKEND_URL }) {
   const [isSlackDrawerOpen, setSlackDrawerOpen] = useState(false)
   const [isGoogleDrawerOpen, setGoogleDrawerOpen] = useState(false)
   const [isAtlassianDrawerOpen, setAtlassianDrawerOpen] = useState(false)
@@ -648,87 +648,12 @@ export async function getServerSideProps(context) {
   // Fetch id as the slug of the page from the context.params
   // set id's default value as undefined to avoid TypeError
   const { params: { id } = { id: undefined } } = context
+  const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8080"
 
   return {
     props: {
       id,
+      BACKEND_URL,
     },
-  }
-}
-
-/* This code sits under the button of the Add a new member card
-<input type="checkbox" id="invite-user-modal" className="modal-toggle" />
-            <div className="modal">
-              <div className="modal-box bg-white p-10">
-                <input
-                  type="text"
-                  placeholder="User email"
-                  className="text-xl w-full rounded-2xl p-2 border border-blue-300"
-                  value={newUserEmail}
-                  onChange={(event) => setNewUserEmail(event.target.value)}
-                />
-                <div className="modal-action">
-                  <label
-                    htmlFor="invite-user-modal"
-                    className={`btn btn-primary ${isAddUserBtnLoading ? "loading" : ""}`}
-                    onClick={async (event) => {
-                      event.preventDefault()
-                      setAddUserBtnLoading(true)
-                      await addUser(newUserEmail)
-                      setAddUserBtnLoading(false)
-                    }}
-                  >
-                    Add
-                  </label>
-                  <label htmlFor="invite-user-modal" className="btn">
-                    Cancel
-                  </label>
-                </div>
-              </div>
-            </div>
-*/
-
-const addUser = async (id) => {
-  if (id.trim().length) {
-    // search for the user in the database
-    const user = await axios
-      .get(URL.GET_USER_BY_ID, { params: { id } })
-      .then((response) => {
-        if (response.data.ok) return response.data.message
-
-        throw new Error(response.data.message)
-      })
-      .catch((error) => {
-        console.log(error)
-        throw new Error(error)
-      })
-    // get the user name and referenceId
-    // call the backend to add the user to the template
-    await axios({
-      method: "put",
-      url: URL.UPDATE_TEMPLATE_MEMBER,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: JSON.stringify({
-        id: id,
-        members: members.concat(user._id.toString()),
-      }),
-    })
-      .then((response) => {
-        console.log(JSON.stringify(response.data))
-      })
-      .catch((error) => {
-        console.log(error)
-        throw new Error(error)
-      })
-
-    // add users to every directory in Slack, Google Group, and Atlassian Cloud
-    await inviteAll(user.email.trim())
-      .then((_) => Router.reload(window.location.pathname))
-      .catch((err) => {
-        console.log(err)
-        throw new Error(err)
-      })
   }
 }

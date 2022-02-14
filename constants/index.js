@@ -1,9 +1,10 @@
-const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8080"
+const BACKEND_URL = /*"https://api.withdeck.com"*/ "https://api.withdeck.com"
 
 export const URL = {
   // Templates
   GET_TEMPLATE_BY_ID: `${BACKEND_URL}/template/get-template-by-id`,
   UPDATE_TEMPLATE_MEMBER: `${BACKEND_URL}/template/update/members`,
+  LIST_ALL_TEMPLATES: `${BACKEND_URL}/template/list-all`,
   // Users
   GET_USER_BY_ID: `${BACKEND_URL}/users/get-user`,
   LIST_ALL_USERS: `${BACKEND_URL}/users/list-all`,
