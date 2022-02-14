@@ -17,83 +17,69 @@ function equalsIgnoreOrder(a = [], b = []) {
 }
 
 // This function renders the sidebar under the template tab
-function TemplateSidebar({
-  isOpen,
-  setOpen,
-  appName, // slack, github, atlassian, google, or members
-  optionType,
-  optionBadgeColor,
-  allOptions,
-  savedOptions,
-  handleOptionsUpdate,
-}) {
-  const [selectedOptions, setSelectedOptions] = useState(savedOptions)
+function MemberSidebar({ isOpen, setOpen, badgeColor, allMembers, templateMembers, handleMembersUpdate }) {
+  const [selectedMembers, setSelectedMembers] = useState(templateMembers)
   const [isSaveButtonLoading, setSaveButtonLoading] = useState(false)
 
   // if the added channels are the same as the template channels from the database,
   // we should not update the template and allow the save button to be active
-  const shouldSaveActive = !equalsIgnoreOrder(selectedOptions, savedOptions)
+  const shouldSaveBtnActive = !equalsIgnoreOrder(selectedMembers, templateMembers)
 
-  const removeOption = (_option) => {
-    setSelectedOptions(selectedOptions.filter((option) => option !== _option))
+  const removeMember = (member) => {
+    setSelectedMembers(selectedMembers.filter((option) => option !== member))
   }
 
   return (
     <div className="w-full h-full divide-y divide-gray-300 space-y-4 p-3">
       <section className="w-full h-1/2 flex flex-col">
-        <input placeholder={`Search ${optionType?.toLowerCase()}`} className="card w-full mb-4" style={{ padding: "0.5rem" }} />
+        <input placeholder={`Search members`} className="card w-full mb-4" style={{ padding: "0.5rem" }} />
         <ul className="search-result flex flex-col space-y-2 max-h-80 overflow-y-auto">
-          {allOptions.map((option, key) => {
-            const selectedOptionIds = selectedOptions.map((opt) => opt._id)
-            const isOptionSelected = selectedOptionIds.includes(option._id)
+          {allMembers.map((_member, key) => {
+            const selectedMemberIds = selectedMembers.map((opt) => opt._id)
+            const isMemberSelected = selectedMemberIds.includes(_member._id)
 
             return (
               <li
-                key={`${option.id}_${key}`}
+                key={`${_member.id}_${key}`}
                 className={`flex flex-row justify-between rounded-lg shadow-lg hover:bg-zinc-200 ${
-                  isOptionSelected ? "bg-gray-200 cursor-not-allowed" : "cursor-pointer"
+                  isMemberSelected ? "bg-gray-200 cursor-not-allowed" : "cursor-pointer"
                 }`}
                 style={{ padding: "0.5rem" }}
-                onClick={() =>
-                  !isOptionSelected &&
-                  setSelectedOptions([...selectedOptions, { _id: option._id, email: option.email, name: option.name }])
-                }
-                disabled={isOptionSelected}
+                onClick={() => !isMemberSelected && setSelectedMembers([...selectedMembers, { ..._member }])}
+                disabled={isMemberSelected}
               >
                 <p>
-                  {option.name} ({option.email})
+                  {_member.name} ({_member.email})
                 </p>
-                {isOptionSelected && <CheckCircleIcon className="h-5 w-5 text-green-400" />}
+                {isMemberSelected && <CheckCircleIcon className="h-5 w-5 text-green-400" />}
               </li>
             )
           })}
         </ul>
       </section>
       <section className="w-full flex flex-col pt-2 h-1/2">
-        <h2 className={`defined-badge p-1 mt-4 mb-2 w-fit ${optionBadgeColor} text-white`}>
-          ADDED {optionType?.toUpperCase()}
-        </h2>
+        <h2 className={`defined-badge p-1 mt-4 mb-2 w-fit ${badgeColor} text-white`}>ADDED MEMBERS</h2>
         <ul className="space-y-2 divide-y divide-neutral-300 h-full overflow-y-auto">
-          {selectedOptions.map((option, key) => (
+          {selectedMembers.map((option, key) => (
             <li key={`${option}_${key}`} className="flex flex row justify-between" style={{ padding: "0.5rem" }}>
               <p>
                 {option.name} ({option.email})
               </p>
-              <TrashIcon className="h-5 w-5 hover:text-red-400 cursor-pointer" onClick={() => removeOption(option)} />
+              <TrashIcon className="h-5 w-5 hover:text-red-400 cursor-pointer" onClick={() => removeMember(option)} />
             </li>
           ))}
         </ul>
         <div className="defined-btn-group flex flex-row justify-end gap-x-4 my-4">
           <button
             className={`btn btn-primary ${
-              shouldSaveActive ? "rounded-btn " : "rounded-btn-disabled text-white cursor-not-allowed"
+              shouldSaveBtnActive ? "rounded-btn " : "rounded-btn-disabled text-white cursor-not-allowed"
             } ${isSaveButtonLoading ? "loading" : ""} bg-indigo-500`}
-            disabled={!shouldSaveActive}
+            disabled={!shouldSaveBtnActive}
             onClick={async (event) => {
               event.preventDefault()
               setSaveButtonLoading(true)
-              const prevMemberList = savedOptions.map((option) => option._id)
-              await handleOptionsUpdate(selectedOptions, prevMemberList)
+
+              await handleMembersUpdate(selectedMembers, templateMembers)
               setSaveButtonLoading(false)
             }}
           >
@@ -109,7 +95,7 @@ function TemplateSidebar({
 }
 
 export default function MemberOverlay(props) {
-  // props will include multiple fields as { isOpen, setOpen, appName, optionType, optionBadgeColor, allOptions, savedOptions, handleOptionsUpdate }
+  // props will include multiple fields as { isOpen, setOpen, optionBadgeColor, allMembers, templateMembers, handleMembersUpdate }
   return (
     <Transition
       show={props.isOpen}
@@ -127,7 +113,7 @@ export default function MemberOverlay(props) {
             We must add something in this area	
           */}
         <div className="flex-none w-128 p-5 flex flex-col bg-[#f0f0f0]">
-          <TemplateSidebar {...props} />
+          <MemberSidebar {...props} />
         </div>
       </aside>
     </Transition>
