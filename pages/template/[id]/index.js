@@ -190,42 +190,42 @@ export default function Template({ id, BACKEND_URL }) {
           throw new Error(error)
         }))
 
-    if (addedChannels.length) {
-      // Update the template with the new channels in MongoDB database.
-      await axios({
+    console.log("addedChannels: ", addedChannels)
+
+    // Update the template with the new channels in MongoDB database.
+    await axios({
+      method: "put",
+      url: URL.UPDATE_SLACK_TEMPLATE,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: JSON.stringify({ id: id, channels: addedChannels }),
+    })
+      .then((response) => console.log(JSON.stringify(response.data)))
+      .catch((error) => {
+        console.log("Error at update the template: ", error)
+        throw new Error(error)
+      })
+
+    // Invite users to the new channels in the template.
+    if (memberEmails.length && addedChannels.length) {
+      const config = {
         method: "put",
-        url: URL.UPDATE_SLACK_TEMPLATE,
+        url: URL.INVITE_TO_CHANNELS,
         headers: {
           "Content-Type": "application/json",
         },
-        data: JSON.stringify({ id: id, channels: addedChannels }),
-      })
-        .then((response) => console.log(JSON.stringify(response.data)))
-        .catch((error) => {
-          console.log("Error at update the template: ", error)
+        data: JSON.stringify({ emails: memberEmails, channels: addedChannels }),
+      }
+
+      await axios(config)
+        .then((response) => {
+          console.log(JSON.stringify(response.data))
+        })
+        .catch(function (error) {
+          console.log("Error at invite users to channels: ", error)
           throw new Error(error)
         })
-
-      // Invite users to the new channels in the template.
-      if (memberEmails.length) {
-        const config = {
-          method: "put",
-          url: URL.INVITE_TO_CHANNELS,
-          headers: {
-            "Content-Type": "application/json",
-          },
-          data: JSON.stringify({ emails: memberEmails, channels: addedChannels }),
-        }
-
-        await axios(config)
-          .then((response) => {
-            console.log(JSON.stringify(response.data))
-          })
-          .catch(function (error) {
-            console.log("Error at invite users to channels: ", error)
-            throw new Error(error)
-          })
-      }
     }
 
     toast.success("Successfully updated Slack channels.", toastOption)
@@ -258,34 +258,33 @@ export default function Template({ id, BACKEND_URL }) {
           throw new Error(error)
         }))
 
-    if (addedGroups.length) {
-      // Update the template with the new google groups in MongoDB database.
-      await axios({
-        method: "put",
-        url: URL.UPDATE_GOOGLE_GROUP_TEMPLATE,
+    // Update the template with the new google groups in MongoDB database.
+    await axios({
+      method: "put",
+      url: URL.UPDATE_GOOGLE_GROUP_TEMPLATE,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: JSON.stringify({ id: id, groupKeys: addedGroups }),
+    })
+      .then((response) => console.log(JSON.stringify(response.data)))
+      .catch((error) => console.log(error))
+
+    const googleGroupMembers = memberEmails.map((email) => ({ email, role: "MEMBER" }))
+
+    // Invite users to the new google groups in the template.
+    memberEmails.length &&
+      addedGroups.length &&
+      (await axios({
+        method: "post",
+        url: URL.ADD_TO_GOOGLE_GROUPS,
         headers: {
           "Content-Type": "application/json",
         },
-        data: JSON.stringify({ id: id, groupKeys: addedGroups }),
+        data: JSON.stringify({ groupKeys: addedGroups, members: googleGroupMembers }),
       })
         .then((response) => console.log(JSON.stringify(response.data)))
-        .catch((error) => console.log(error))
-
-      const googleGroupMembers = memberEmails.map((email) => ({ email, role: "MEMBER" }))
-
-      // Invite users to the new google groups in the template.
-      memberEmails.length &&
-        (await axios({
-          method: "post",
-          url: URL.ADD_TO_GOOGLE_GROUPS,
-          headers: {
-            "Content-Type": "application/json",
-          },
-          data: JSON.stringify({ groupKeys: addedGroups, members: googleGroupMembers }),
-        })
-          .then((response) => console.log(JSON.stringify(response.data)))
-          .catch((error) => console.log(error)))
-    }
+        .catch((error) => console.log(error)))
 
     toast.success("Successfully updated Google groups.", toastOption)
 
@@ -316,15 +315,34 @@ export default function Template({ id, BACKEND_URL }) {
           throw new Error(error)
         }))
 
-    if (addedGroups.length) {
-      // Update the template with the new Atlassian groups in MongoDB database.
-      await axios({
-        method: "put",
-        url: URL.UPDATE_ATLASSIAN_TEMPLATE,
+    // Update the template with the new Atlassian groups in MongoDB database.
+    await axios({
+      method: "put",
+      url: URL.UPDATE_ATLASSIAN_TEMPLATE,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: JSON.stringify({ id: id, groupnames: addedGroups }),
+    })
+      .then((response) => {
+        console.log(JSON.stringify(response.data))
+        return response.data
+      })
+      .catch((error) => {
+        console.log(error)
+        throw new Error(error)
+      })
+
+    // Invite users to the new Atlassian groups in the template.
+    memberEmails.length &&
+      addedGroups.length &&
+      (await axios({
+        method: "post",
+        url: URL.INVITE_TO_ATLASSIAN_GROUPS,
         headers: {
           "Content-Type": "application/json",
         },
-        data: JSON.stringify({ id: id, groupnames: addedGroups }),
+        data: JSON.stringify({ emails: memberEmails, groupnames: addedGroups }),
       })
         .then((response) => {
           console.log(JSON.stringify(response.data))
@@ -333,27 +351,7 @@ export default function Template({ id, BACKEND_URL }) {
         .catch((error) => {
           console.log(error)
           throw new Error(error)
-        })
-
-      // Invite users to the new Atlassian groups in the template.
-      memberEmails.length &&
-        (await axios({
-          method: "post",
-          url: URL.INVITE_TO_ATLASSIAN_GROUPS,
-          headers: {
-            "Content-Type": "application/json",
-          },
-          data: JSON.stringify({ emails: memberEmails, groupnames: addedGroups }),
-        })
-          .then((response) => {
-            console.log(JSON.stringify(response.data))
-            return response.data
-          })
-          .catch((error) => {
-            console.log(error)
-            throw new Error(error)
-          }))
-    }
+        }))
 
     toast.success("Successfully updated Atlassian groups.", toastOption)
 
