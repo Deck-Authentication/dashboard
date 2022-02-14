@@ -525,7 +525,7 @@ export default function Template({ id, BACKEND_URL }) {
     // call the backend to remove the user from the template
     console.log("_id inside removeUser: ", _id)
     const newMemberList = memberList.filter((member) => member._id !== _id)
-    const removedMemberEmail = memberList.find((member) => member._id === _id).email
+    const removedMember = memberList.find((member) => member._id === _id)
     await axios({
       method: "put",
       url: URL.UPDATE_TEMPLATE_MEMBER,
@@ -545,8 +545,18 @@ export default function Template({ id, BACKEND_URL }) {
         throw new Error(error)
       })
 
+    // remove the teamId from the user's team field
+    await axios({
+      method: "put",
+      url: URL.UPDATE_USER_TEAM,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: JSON.stringify({ _id: _id, team: removedMember.team.filter((currentID) => currentID != id) }),
+    })
+
     // remove users from every directory in Slack, Google Group, and Atlassian Cloud
-    await removeAll(removedMemberEmail.trim())
+    await removeAll(removedMember.email.trim())
       .then((_) => Router.reload(window.location.pathname))
       .catch((err) => {
         console.log(err)
