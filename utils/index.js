@@ -41,7 +41,7 @@ export function useTemplate(url = "") {
   const fetchTemplates = async (url) =>
     await axios({ method: "get", url })
       // template returned from backend
-      .then((res) => res.data.template)
+      .then((res) => res.data.message)
       .catch((err) => {
         console.error(err)
         throw new Error(err)

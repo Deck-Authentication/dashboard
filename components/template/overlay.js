@@ -120,6 +120,7 @@ export default function Overlay(props) {
       leave="transition-opacity duration-150"
       leaveFrom="opacity-100"
       leaveTo="opacity-0"
+      key={`${props.appName}_${props.key}`}
     >
       <aside className="absolute inset-0 w-full h-full flex flex-row">
         <div className="flex-auto bg-zinc-300/80" onClick={() => props.setOpen(!props.isOpen)}></div>
