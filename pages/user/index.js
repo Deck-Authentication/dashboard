@@ -1,9 +1,10 @@
 import { URL } from "../../constants"
 import Spinner from "../../components/spinner"
-import { useUsers } from "../../utils"
+import { useUsers, useTemplate } from "../../utils"
 
 export default function User() {
   const { users, areUsersBeingLoaded, isUsersLoadingFailed } = useUsers(URL.LIST_ALL_USERS)
+  const { template, isTemplateLoading, isTemplateError } = useTemplate(URL.GET_TEMPLATE)
 
   if (isUsersLoadingFailed)
     return (

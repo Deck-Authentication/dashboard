@@ -10,7 +10,7 @@ import Spinner from "../../components/spinner"
 const fetcher = async (url) =>
   await axios
     .get(url)
-    .then((res) => res.data)
+    .then((res) => res.data.message)
     .catch((err) => {
       console.error(err)
       throw new Error(err)
@@ -33,7 +33,7 @@ export default function Templates({ BACKEND_URL }) {
   const [newTemplateName, setNewTemplateName] = useState("")
   const [isCreateButtonLoading, setCreateButtonLoading] = useState(false)
   // fetch all the templates from the database
-  const { data, error } = useSWR(`${BACKEND_URL}/template/get-all-template`, fetcher)
+  const { data, error } = useSWR(`${BACKEND_URL}/template/list-all`, fetcher)
 
   const createTemplate = async (newTemplate) => {
     const config = {
@@ -137,7 +137,7 @@ export default function Templates({ BACKEND_URL }) {
         </div>
       </div>
       <section className="mt-5 flex flex-row flex-wrap gap-4">
-        {data["template"].map((template, key) => TemplateCard({ template, key, deleteTemplate: deleteTemplate }))}
+        {data.map((template, key) => TemplateCard({ template, key, deleteTemplate: deleteTemplate }))}
       </section>
       <ToastContainer />
     </div>
