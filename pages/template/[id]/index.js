@@ -135,10 +135,11 @@ export default function Template({ id }) {
     members,
   } = template
 
+  console.log("users: ", users)
+
   // since we only save the members as a list of reference Ids to users,
   // we have to filter the users list by referenceIds to get the full user data
-  const memberList = users.filter((user) => members.includes(user._id))
-  console.log("memberList: ", memberList)
+  let memberList = users.filter((user) => members.includes(user._id))
 
   // filter out missing apps
   const appCardsData = [
@@ -168,6 +169,7 @@ export default function Template({ id }) {
   const handleSlackChannelsUpdate = async (addedChannels) => {
     // This code has a bug in edge cases.
     const memberEmails = memberList.map((member) => member.email)
+    console.log("memberEmails:", memberEmails)
 
     // Remove users from every existing channel in the template.
     memberEmails.length &&
@@ -411,42 +413,59 @@ export default function Template({ id }) {
   }
 
   // updae the members field in the template collection and the team field in the user collection
-  const handleMembersUpdate = async (newMembers, prevMemberList) => {
-    newMembers.map(async (newMember) => {
+  const handleMembersUpdate = async (newMembers, templateMembers) => {
+    let promises = []
+    // Only get the member Ids since we save them by id in the template collection.
+    const templateMemberIds = templateMembers.map((member) => member._id)
+
+    console.log("newMembers: ", newMembers)
+
+    newMembers.map((newMember) => {
       // call the backend to add the user id to the template under the members field
-      await axios({
-        method: "put",
-        url: URL.UPDATE_TEMPLATE_MEMBER,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        data: JSON.stringify({
-          id: id,
-          members: prevMemberList.concat(newMember._id),
-        }),
-      }).catch((error) => {
-        console.log(error)
-        throw new Error(error)
-      })
+      promises.push(
+        axios({
+          method: "put",
+          url: URL.UPDATE_TEMPLATE_MEMBER,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          data: JSON.stringify({
+            id: id,
+            members: templateMemberIds.concat(newMember._id),
+          }),
+        }).catch((error) => {
+          console.log(error)
+          throw new Error(error)
+        })
+      )
 
       // add users to every directory in Slack, Google Group, and Atlassian Cloud
-      await inviteAll(newMember.email.trim())
-        .then((_) => Router.reload(window.location.pathname))
-        .catch((err) => {
+      promises.push(
+        inviteAll(newMember.email.trim()).catch((err) => {
           console.log(err)
           throw new Error(err)
         })
+      )
 
-      // update the team array field for that user by appending an object of template name and template id
-      await axios({
-        method: "put",
-        url: URL.UPDATE_USER_TEAM,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        data: JSON.stringify({ _id: newMember._id, team: newMember.team.concat(id) }),
-      })
+      // update the team array field for that user by appending a template id string to it
+      promises.push(
+        axios({
+          method: "put",
+          url: URL.UPDATE_USER_TEAM,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          data: JSON.stringify({ _id: newMember._id, team: newMember.team.concat(id) }),
+        })
+      )
     })
+
+    // We use Promise.allSettled since the outcome of each promise doesn't affect others
+    await Promise.allSettled(promises)
+      .then((result) => {
+        if (result.status === "rejected") throw new Error(result.reason)
+      })
+      .then((_) => Router.reload(window.location.pathname))
   }
 
   // remove users from all directories in the template
@@ -571,14 +590,12 @@ export default function Template({ id }) {
   ]
 
   const membersOverlayData = {
-    appName: "members",
     isOpen: isMemberDrawerOpen,
     setOpen: setMemberDrawerOpen,
-    optionType: "members",
-    optionBadgeColor: "bg-orange-500",
-    allOptions: users,
-    savedOptions: memberList,
-    handleOptionsUpdate: handleMembersUpdate,
+    badgeColor: "bg-orange-500",
+    allMembers: users,
+    templateMembers: memberList,
+    handleMembersUpdate,
   }
 
   return (
