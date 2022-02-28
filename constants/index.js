@@ -1,6 +1,4 @@
-const BACKEND_URL = /*"https://api.withdeck.com" || "localhost:8080"*/ "https://api.withdeck.com"
-
-export const URL = {
+export const URL = (BACKEND_URL) => ({
   // Templates
   GET_TEMPLATE_BY_ID: `${BACKEND_URL}/template/get-template-by-id`,
   UPDATE_TEMPLATE_MEMBER: `${BACKEND_URL}/template/update/members`,
@@ -24,4 +22,4 @@ export const URL = {
   GET_ATLASSIAN_GROUPS: `${BACKEND_URL}/atlassian/jira/get-all-groups`,
   REMOVE_FROM_ATLASSIAN_GROUPS: `${BACKEND_URL}/atlassian/jira/remove-from-team`,
   INVITE_TO_ATLASSIAN_GROUPS: `${BACKEND_URL}/atlassian/jira/invite-to-team`,
-}
+})

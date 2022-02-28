@@ -2,9 +2,9 @@ import { URL } from "../../constants"
 import Spinner from "../../components/spinner"
 import { useUsers, useTemplate } from "../../utils"
 
-export default function User() {
-  const { users, areUsersBeingLoaded, isUsersLoadingFailed } = useUsers(URL.LIST_ALL_USERS)
-  const { template, isTemplateLoading, isTemplateError } = useTemplate(URL.LIST_ALL_TEMPLATES)
+export default function User({ BACKEND_URL }) {
+  const { users, areUsersBeingLoaded, isUsersLoadingFailed } = useUsers(URL(BACKEND_URL).LIST_ALL_USERS)
+  const { template, isTemplateLoading, isTemplateError } = useTemplate(URL(BACKEND_URL).LIST_ALL_TEMPLATES)
 
   if (isUsersLoadingFailed)
     return (
@@ -76,4 +76,16 @@ export default function User() {
       </table>
     </div>
   )
+}
+
+export async function getServerSideProps() {
+  const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8080"
+
+  console.log("BACKEND_URL inside getServerSideProps = ", BACKEND_URL)
+
+  return {
+    props: {
+      BACKEND_URL,
+    },
+  }
 }

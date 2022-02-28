@@ -33,11 +33,16 @@ export default function Template({ id, BACKEND_URL }) {
   // const [slackChannels, setSlackChannels] = useState([])
   // const [googleGroupKeys, setGoogleGroupKeys] = useState([])
   // const [atlassianGroupnames, setAtlassianGroupnames] = useState([])
-  const { template, isTemplateLoading, isTemplateError } = useTemplate(`${URL.GET_TEMPLATE_BY_ID}/${id}`)
-  const { conversations, areConversationsLoading, areConversationsFailed } = useSlackConversations(URL.GET_SLACK_CONVERSATIONS)
-  const { groups, areGroupsLoading, areGroupsFailed } = useGoogleGroups(URL.GET_GOOGLE_GROUPS)
-  const { atlassianGroups, areAtlassianGroupsLoading, areAtlassianGroupsFailed } = useAtlassianGroups(URL.GET_ATLASSIAN_GROUPS)
-  const { users, areUsersBeingLoaded, isUsersLoadingFailed } = useUsers(URL.LIST_ALL_USERS)
+
+  const { template, isTemplateLoading, isTemplateError } = useTemplate(`${URL(BACKEND_URL).GET_TEMPLATE_BY_ID}/${id}`)
+  const { conversations, areConversationsLoading, areConversationsFailed } = useSlackConversations(
+    URL(BACKEND_URL).GET_SLACK_CONVERSATIONS
+  )
+  const { groups, areGroupsLoading, areGroupsFailed } = useGoogleGroups(URL(BACKEND_URL).GET_GOOGLE_GROUPS)
+  const { atlassianGroups, areAtlassianGroupsLoading, areAtlassianGroupsFailed } = useAtlassianGroups(
+    URL(BACKEND_URL).GET_ATLASSIAN_GROUPS
+  )
+  const { users, areUsersBeingLoaded, isUsersLoadingFailed } = useUsers(URL(BACKEND_URL).LIST_ALL_USERS)
   // fetch all apps and template's members list from the data received from backend
 
   if (isTemplateError) {
@@ -176,7 +181,7 @@ export default function Template({ id, BACKEND_URL }) {
       slack?.channels?.length &&
       (await axios({
         method: "delete",
-        url: URL.REMOVE_FROM_CHANNELS,
+        url: URL(BACKEND_URL).REMOVE_FROM_CHANNELS,
         headers: {
           "Content-Type": "application/json",
         },
@@ -195,7 +200,7 @@ export default function Template({ id, BACKEND_URL }) {
     // Update the template with the new channels in MongoDB database.
     await axios({
       method: "put",
-      url: URL.UPDATE_SLACK_TEMPLATE,
+      url: URL(BACKEND_URL).UPDATE_SLACK_TEMPLATE,
       headers: {
         "Content-Type": "application/json",
       },
@@ -211,7 +216,7 @@ export default function Template({ id, BACKEND_URL }) {
     if (memberEmails.length && addedChannels.length) {
       const config = {
         method: "put",
-        url: URL.INVITE_TO_CHANNELS,
+        url: URL(BACKEND_URL).INVITE_TO_CHANNELS,
         headers: {
           "Content-Type": "application/json",
         },
@@ -243,7 +248,7 @@ export default function Template({ id, BACKEND_URL }) {
       google?.groupKeys?.length &&
       (await axios({
         method: "delete",
-        url: URL.REMOVE_FROM_GOOGLE_GROUPS,
+        url: URL(BACKEND_URL).REMOVE_FROM_GOOGLE_GROUPS,
         headers: {
           "Content-Type": "application/json",
         },
@@ -261,7 +266,7 @@ export default function Template({ id, BACKEND_URL }) {
     // Update the template with the new google groups in MongoDB database.
     await axios({
       method: "put",
-      url: URL.UPDATE_GOOGLE_GROUP_TEMPLATE,
+      url: URL(BACKEND_URL).UPDATE_GOOGLE_GROUP_TEMPLATE,
       headers: {
         "Content-Type": "application/json",
       },
@@ -277,7 +282,7 @@ export default function Template({ id, BACKEND_URL }) {
       addedGroups.length &&
       (await axios({
         method: "post",
-        url: URL.ADD_TO_GOOGLE_GROUPS,
+        url: URL(BACKEND_URL).ADD_TO_GOOGLE_GROUPS,
         headers: {
           "Content-Type": "application/json",
         },
@@ -300,7 +305,7 @@ export default function Template({ id, BACKEND_URL }) {
       atlassian?.groupnames?.length &&
       (await axios({
         method: "delete",
-        url: URL.REMOVE_FROM_ATLASSIAN_GROUPS,
+        url: URL(BACKEND_URL).REMOVE_FROM_ATLASSIAN_GROUPS,
         headers: {
           "Content-Type": "application/json",
         },
@@ -318,7 +323,7 @@ export default function Template({ id, BACKEND_URL }) {
     // Update the template with the new Atlassian groups in MongoDB database.
     await axios({
       method: "put",
-      url: URL.UPDATE_ATLASSIAN_TEMPLATE,
+      url: URL(BACKEND_URL).UPDATE_ATLASSIAN_TEMPLATE,
       headers: {
         "Content-Type": "application/json",
       },
@@ -338,7 +343,7 @@ export default function Template({ id, BACKEND_URL }) {
       addedGroups.length &&
       (await axios({
         method: "post",
-        url: URL.INVITE_TO_ATLASSIAN_GROUPS,
+        url: URL(BACKEND_URL).INVITE_TO_ATLASSIAN_GROUPS,
         headers: {
           "Content-Type": "application/json",
         },
@@ -367,7 +372,7 @@ export default function Template({ id, BACKEND_URL }) {
       promises.push(
         axios({
           method: "put",
-          url: URL.INVITE_TO_CHANNELS,
+          url: URL(BACKEND_URL).INVITE_TO_CHANNELS,
           headers: {
             "Content-Type": "application/json",
           },
@@ -382,7 +387,7 @@ export default function Template({ id, BACKEND_URL }) {
       promises.push(
         axios({
           method: "post",
-          url: URL.ADD_TO_GOOGLE_GROUPS,
+          url: URL(BACKEND_URL).ADD_TO_GOOGLE_GROUPS,
           headers: {
             "Content-Type": "application/json",
           },
@@ -394,7 +399,7 @@ export default function Template({ id, BACKEND_URL }) {
       promises.push(
         axios({
           method: "post",
-          url: URL.INVITE_TO_ATLASSIAN_GROUPS,
+          url: URL(BACKEND_URL).INVITE_TO_ATLASSIAN_GROUPS,
           headers: {
             "Content-Type": "application/json",
           },
@@ -423,7 +428,7 @@ export default function Template({ id, BACKEND_URL }) {
       promises.push(
         axios({
           method: "put",
-          url: URL.UPDATE_TEMPLATE_MEMBER,
+          url: URL(BACKEND_URL).UPDATE_TEMPLATE_MEMBER,
           headers: {
             "Content-Type": "application/json",
           },
@@ -449,7 +454,7 @@ export default function Template({ id, BACKEND_URL }) {
       promises.push(
         axios({
           method: "put",
-          url: URL.UPDATE_USER_TEAM,
+          url: URL(BACKEND_URL).UPDATE_USER_TEAM,
           headers: {
             "Content-Type": "application/json",
           },
@@ -473,7 +478,7 @@ export default function Template({ id, BACKEND_URL }) {
       promises.push(
         axios({
           method: "delete",
-          url: URL.REMOVE_FROM_CHANNELS,
+          url: URL(BACKEND_URL).REMOVE_FROM_CHANNELS,
           headers: {
             "Content-Type": "application/json",
           },
@@ -488,7 +493,7 @@ export default function Template({ id, BACKEND_URL }) {
       promises.push(
         axios({
           method: "delete",
-          url: URL.REMOVE_FROM_GOOGLE_GROUPS,
+          url: URL(BACKEND_URL).REMOVE_FROM_GOOGLE_GROUPS,
           headers: {
             "Content-Type": "application/json",
           },
@@ -500,7 +505,7 @@ export default function Template({ id, BACKEND_URL }) {
       promises.push(
         axios({
           method: "delete",
-          url: URL.REMOVE_FROM_ATLASSIAN_GROUPS,
+          url: URL(BACKEND_URL).REMOVE_FROM_ATLASSIAN_GROUPS,
           headers: {
             "Content-Type": "application/json",
           },
@@ -526,7 +531,7 @@ export default function Template({ id, BACKEND_URL }) {
     const removedMember = memberList.find((member) => member._id === _id)
     await axios({
       method: "put",
-      url: URL.UPDATE_TEMPLATE_MEMBER,
+      url: URL(BACKEND_URL).UPDATE_TEMPLATE_MEMBER,
       headers: {
         "Content-Type": "application/json",
       },
@@ -546,7 +551,7 @@ export default function Template({ id, BACKEND_URL }) {
     // remove the teamId from the user's team field
     await axios({
       method: "put",
-      url: URL.UPDATE_USER_TEAM,
+      url: URL(BACKEND_URL).UPDATE_USER_TEAM,
       headers: {
         "Content-Type": "application/json",
       },
