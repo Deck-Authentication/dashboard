@@ -1,7 +1,7 @@
 import useSWR from "swr"
 import axios from "axios"
 
-async function getAccessToken() {
+export async function getAccessToken() {
   const { accessToken } = await axios.get("/api/get-access-token").then((res) => res.data)
   return accessToken
 }

@@ -1,13 +1,20 @@
 import { Popover } from "@headlessui/react"
 import { useUser } from "@auth0/nextjs-auth0"
 import Spinner from "../components/spinner"
+import { useRouter } from "next/router"
+import { useAppContext } from "../context"
 
 export default function Header() {
-  const HeaderOptions = [
-    { name: "Profile", href: "#" },
-    { name: "Logout", href: "/api/auth/logout" },
-  ]
+  const router = useRouter()
   const { user, error, isLoading } = useUser()
+  const [_, setContext] = useAppContext()
+
+  const handleLogout = (event) => {
+    event.preventDefault()
+    // clean up context before logging out
+    setContext({})
+    router.push("/api/auth/logout")
+  }
 
   if (isLoading)
     return (
@@ -39,11 +46,9 @@ export default function Header() {
         </Popover.Button>
         <Popover.Panel className="absolute z-10 right-0 mt-2 bg-white border border-gray-300 p-1 w-52 rounded-xl">
           <ul tabIndex="0" className="p-2 rounded-box w-full">
-            {HeaderOptions.map((option, key) => (
-              <a href={option.href} key={key}>
-                <li className="hover:bg-zinc-100 rounded-box p-2 rounded-xl">{option.name}</li>
-              </a>
-            ))}
+            <a href="#" onClick={(event) => handleLogout(event)}>
+              <li className="hover:bg-zinc-100 rounded-box p-2 rounded-xl">Log out</li>
+            </a>
           </ul>
         </Popover.Panel>
       </Popover>
