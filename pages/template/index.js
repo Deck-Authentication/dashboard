@@ -6,10 +6,15 @@ import { useState } from "react"
 import { XCircleIcon } from "@heroicons/react/solid"
 import { ToastContainer, toast } from "react-toastify"
 import Spinner from "../../components/spinner"
+import { useAppContext } from "../../context"
 
-const fetcher = async (url) =>
+const fetcher = async (url, accessToken) =>
   await axios
-    .get(url)
+    .get(url, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    })
     .then((res) => res.data.message)
     .catch((err) => {
       console.error(err)
@@ -32,8 +37,9 @@ export default function Templates({ BACKEND_URL }) {
 
   const [newTemplateName, setNewTemplateName] = useState("")
   const [isCreateButtonLoading, setCreateButtonLoading] = useState(false)
+  const [context] = useAppContext()
   // fetch all the templates from the database
-  const { data, error } = useSWR(`${BACKEND_URL}/template/list-all`, fetcher)
+  const { data, error } = useSWR(`${BACKEND_URL}/template/list-all`, (url) => fetcher(url, context.accessToken))
 
   const createTemplate = async (newTemplate) => {
     const config = {
@@ -41,6 +47,7 @@ export default function Templates({ BACKEND_URL }) {
       url: URL.CREATE_TEMPLATE,
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${context.accessToken}`,
       },
       data: JSON.stringify({ name: newTemplate }),
     }
@@ -64,6 +71,7 @@ export default function Templates({ BACKEND_URL }) {
       url: URL.DELETE_TEMPLATE,
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${context.accessToken}`,
       },
       data: JSON.stringify({ id: templateId }),
     }
@@ -78,6 +86,8 @@ export default function Templates({ BACKEND_URL }) {
     // Trigger a reload to get the updated list of templates
     Router.reload(window.location.pathname)
   }
+
+  if (!context.accessToken) return <div>No Access Token found</div>
 
   if (error)
     return (

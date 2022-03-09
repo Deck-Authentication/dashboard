@@ -15,6 +15,7 @@ import Router from "next/router"
 import Spinner from "../../../components/spinner"
 import { URL } from "../../../constants"
 import { useSlackConversations, useGoogleGroups, useTemplate, useAtlassianGroups, useUsers } from "../../../utils"
+import { useAppContext } from "../../../context"
 
 const toastOption = {
   autoClose: 4000,
@@ -30,6 +31,7 @@ export default function Template({ id, BACKEND_URL }) {
   const [isAtlassianDrawerOpen, setAtlassianDrawerOpen] = useState(false)
   const [isMemberDrawerOpen, setMemberDrawerOpen] = useState(false)
   const [isAddUserBtnLoading, setAddUserBtnLoading] = useState(false)
+  const [context] = useAppContext()
   // const [slackChannels, setSlackChannels] = useState([])
   // const [googleGroupKeys, setGoogleGroupKeys] = useState([])
   // const [atlassianGroupnames, setAtlassianGroupnames] = useState([])
@@ -44,6 +46,8 @@ export default function Template({ id, BACKEND_URL }) {
   )
   const { users, areUsersBeingLoaded, isUsersLoadingFailed } = useUsers(URL(BACKEND_URL).LIST_ALL_USERS)
   // fetch all apps and template's members list from the data received from backend
+
+  if (!context || !context.accessToken) return <div>No access token found</div>
 
   if (isTemplateError) {
     return (
@@ -203,6 +207,7 @@ export default function Template({ id, BACKEND_URL }) {
       url: URL(BACKEND_URL).UPDATE_SLACK_TEMPLATE,
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${context.accessToken}`,
       },
       data: JSON.stringify({ id: id, channels: addedChannels }),
     })
@@ -219,6 +224,7 @@ export default function Template({ id, BACKEND_URL }) {
         url: URL(BACKEND_URL).INVITE_TO_CHANNELS,
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${context.accessToken}`,
         },
         data: JSON.stringify({ emails: memberEmails, channels: addedChannels }),
       }
@@ -251,6 +257,7 @@ export default function Template({ id, BACKEND_URL }) {
         url: URL(BACKEND_URL).REMOVE_FROM_GOOGLE_GROUPS,
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${context.accessToken}`,
         },
         data: JSON.stringify({ members: memberEmails, groupKeys: google.groupKeys }),
       })
@@ -269,6 +276,7 @@ export default function Template({ id, BACKEND_URL }) {
       url: URL(BACKEND_URL).UPDATE_GOOGLE_GROUP_TEMPLATE,
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${context.accessToken}`,
       },
       data: JSON.stringify({ id: id, groupKeys: addedGroups }),
     })
@@ -285,6 +293,7 @@ export default function Template({ id, BACKEND_URL }) {
         url: URL(BACKEND_URL).ADD_TO_GOOGLE_GROUPS,
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${context.accessToken}`,
         },
         data: JSON.stringify({ groupKeys: addedGroups, members: googleGroupMembers }),
       })
@@ -308,6 +317,7 @@ export default function Template({ id, BACKEND_URL }) {
         url: URL(BACKEND_URL).REMOVE_FROM_ATLASSIAN_GROUPS,
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${context.accessToken}`,
         },
         data: JSON.stringify({ groupnames: atlassian.groupnames, emails: memberEmails }),
       })
@@ -326,6 +336,7 @@ export default function Template({ id, BACKEND_URL }) {
       url: URL(BACKEND_URL).UPDATE_ATLASSIAN_TEMPLATE,
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${context.accessToken}`,
       },
       data: JSON.stringify({ id: id, groupnames: addedGroups }),
     })
@@ -346,6 +357,7 @@ export default function Template({ id, BACKEND_URL }) {
         url: URL(BACKEND_URL).INVITE_TO_ATLASSIAN_GROUPS,
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${context.accessToken}`,
         },
         data: JSON.stringify({ emails: memberEmails, groupnames: addedGroups }),
       })
@@ -375,6 +387,7 @@ export default function Template({ id, BACKEND_URL }) {
           url: URL(BACKEND_URL).INVITE_TO_CHANNELS,
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${context.accessToken}`,
           },
           data: JSON.stringify({
             emails: [email],
@@ -390,6 +403,7 @@ export default function Template({ id, BACKEND_URL }) {
           url: URL(BACKEND_URL).ADD_TO_GOOGLE_GROUPS,
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${context.accessToken}`,
           },
           data: JSON.stringify({ groupKeys: google.groupKeys, members: [{ email, role: "MEMBER" }] }),
         })
@@ -402,6 +416,7 @@ export default function Template({ id, BACKEND_URL }) {
           url: URL(BACKEND_URL).INVITE_TO_ATLASSIAN_GROUPS,
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${context.accessToken}`,
           },
           data: JSON.stringify({ groupnames: atlassian.groupnames, emails: [email] }),
         })
@@ -431,6 +446,7 @@ export default function Template({ id, BACKEND_URL }) {
           url: URL(BACKEND_URL).UPDATE_TEMPLATE_MEMBER,
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${context.accessToken}`,
           },
           data: JSON.stringify({
             id: id,
@@ -457,6 +473,7 @@ export default function Template({ id, BACKEND_URL }) {
           url: URL(BACKEND_URL).UPDATE_USER_TEAM,
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${context.accessToken}`,
           },
           data: JSON.stringify({ _id: newMember._id, team: newMember.team.concat(id) }),
         })
@@ -496,6 +513,7 @@ export default function Template({ id, BACKEND_URL }) {
           url: URL(BACKEND_URL).REMOVE_FROM_GOOGLE_GROUPS,
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${context.accessToken}`,
           },
           data: JSON.stringify({ groupKeys: google.groupKeys, members: [email] }),
         })
@@ -508,6 +526,7 @@ export default function Template({ id, BACKEND_URL }) {
           url: URL(BACKEND_URL).REMOVE_FROM_ATLASSIAN_GROUPS,
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${context.accessToken}`,
           },
           data: JSON.stringify({
             groupnames: atlassian.groupnames,
@@ -534,6 +553,7 @@ export default function Template({ id, BACKEND_URL }) {
       url: URL(BACKEND_URL).UPDATE_TEMPLATE_MEMBER,
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${context.accessToken}`,
       },
       data: JSON.stringify({
         id: id,
@@ -554,6 +574,7 @@ export default function Template({ id, BACKEND_URL }) {
       url: URL(BACKEND_URL).UPDATE_USER_TEAM,
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${context.accessToken}`,
       },
       data: JSON.stringify({ _id: _id, team: removedMember.team.filter((currentID) => currentID != id) }),
     })
