@@ -3,7 +3,8 @@ import { config } from "dotenv"
 
 config()
 
-const audience = process.env.NEXT_PUBLIC_ENVIRONMENT === "development" ? "http://localhost:8080" : "https://api.withdeck.com"
+// This is not the backend endpoint but the identifier name staying at https://manage.auth0.com/dashboard/us/dev-fh2bo4e4/apis/6226d19340ecc8004045f5c9/settings
+const audience = "http://localhost:8080"
 
 const handlers = handleAuth({
   async login(req, res) {
