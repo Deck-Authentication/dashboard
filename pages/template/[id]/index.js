@@ -144,8 +144,6 @@ export default function Template({ id, BACKEND_URL }) {
     members,
   } = template
 
-  console.log("users: ", users)
-
   // since we only save the members as a list of reference Ids to users,
   // we have to filter the users list by referenceIds to get the full user data
   let memberList = users.filter((user) => members.includes(user._id))
