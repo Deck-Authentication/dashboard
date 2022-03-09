@@ -81,8 +81,6 @@ export default function User({ BACKEND_URL }) {
 export async function getServerSideProps() {
   const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8080"
 
-  console.log("BACKEND_URL inside getServerSideProps = ", BACKEND_URL)
-
   return {
     props: {
       BACKEND_URL,

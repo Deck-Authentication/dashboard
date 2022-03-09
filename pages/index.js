@@ -12,5 +12,9 @@ export default function Home() {
     )
   if (error) return <div>{error.message}</div>
 
-  return <h1 className="container mx-auto text-3xl font-bold">Hi {user.name || user.email}</h1>
+  return (
+    <div>
+      <h1 className="container mx-auto text-3xl font-bold">Hi {user.name || user.email}</h1>
+    </div>
+  )
 }

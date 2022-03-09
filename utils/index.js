@@ -1,15 +1,27 @@
 import useSWR from "swr"
 import axios from "axios"
 
+async function getAccessToken() {
+  const { accessToken } = await axios.get("/api/get-access-token").then((res) => res.data)
+  return accessToken
+}
+
 export function useSlackConversations(url = "") {
-  const fetchConversation = async (url) =>
-    await axios({ method: "get", url })
+  const fetchConversation = async (url) => {
+    const accessToken = await getAccessToken()
+    return await axios
+      .get(url, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
       // slack conversations returned from backend
       .then((res) => res.data.conversations)
       .catch((err) => {
         console.error(err)
         throw new Error(err)
       })
+  }
   const { data, error } = useSWR(url, fetchConversation)
 
   return {
@@ -20,14 +32,21 @@ export function useSlackConversations(url = "") {
 }
 
 export function useGoogleGroups(url = "") {
-  const fetchGoogleGroups = async (url) =>
-    await axios({ method: "get", url })
+  const fetchGoogleGroups = async (url) => {
+    const accessToken = await getAccessToken()
+    return await axios
+      .get(url, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
       // google groups returned from backend
       .then((res) => res.data.groups)
       .catch((err) => {
         console.error(err)
         throw new Error(err)
       })
+  }
   const { data, error } = useSWR(url, fetchGoogleGroups)
 
   return {
@@ -38,14 +57,21 @@ export function useGoogleGroups(url = "") {
 }
 
 export function useTemplate(url = "") {
-  const fetchTemplates = async (url) =>
-    await axios({ method: "get", url })
+  const fetchTemplates = async (url) => {
+    const accessToken = await getAccessToken()
+    return await axios
+      .get(url, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
       // template returned from backend
       .then((res) => res.data.message)
       .catch((err) => {
         console.error(err)
         throw new Error(err)
       })
+  }
   const { data, error } = useSWR(url, fetchTemplates)
 
   return {
@@ -56,14 +82,21 @@ export function useTemplate(url = "") {
 }
 
 export function useAtlassianGroups(url = "") {
-  const fetchAtlassianGroups = async (url) =>
-    await axios({ method: "get", url })
+  const fetchAtlassianGroups = async (url) => {
+    const accessToken = await getAccessToken()
+    return await axios
+      .get(url, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
       // google groups returned from backend
       .then((res) => res.data.groups)
       .catch((err) => {
         console.error(err)
         throw new Error(err)
       })
+  }
   const { data, error } = useSWR(url, fetchAtlassianGroups)
 
   return {
@@ -74,9 +107,18 @@ export function useAtlassianGroups(url = "") {
 }
 
 export function useUsers(url = "") {
-  const fetcher = (_url) => axios.get(_url).then((res) => res.data.users)
+  const fetchUers = async (_url) => {
+    const accessToken = await getAccessToken()
+    return await axios
+      .get(_url, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+      .then((res) => res.data.users)
+  }
 
-  const { data, error } = useSWR(url, fetcher)
+  const { data, error } = useSWR(url, fetchUers)
 
   return {
     users: data,
