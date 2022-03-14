@@ -106,7 +106,10 @@ export default function Templates({ BACKEND_URL }) {
   return (
     <div id="template" className="w-full p-5">
       <div className="w-full flex flex-row justify-end">
-        <label htmlFor="add-template-modal" className="modal-button pill-btn cursor-pointer normal-case p-1 hover:opacity-90">
+        <label
+          htmlFor="add-template-modal"
+          className="modal-button pill-btn bg-indigo-500 cursor-pointer normal-case p-1 hover:opacity-90"
+        >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
             <path
               fillRule="evenodd"
@@ -149,7 +152,36 @@ export default function Templates({ BACKEND_URL }) {
       <section className="mt-5 flex flex-row flex-wrap gap-4">
         {data.map((template, key) => TemplateCard({ template, key, deleteTemplate: deleteTemplate }))}
       </section>
+      <label htmlFor="my-modal-4" className="btn modal-button">
+        open modal
+      </label>
+
+      <CustomModal header="Delete template" actionBtnMessage="delete" handleAction={() => console.log("Hi from Modal")}>
+        <p>Deleting this template will revoke user permission from all app directories.</p>
+      </CustomModal>
       <ToastContainer />
+    </div>
+  )
+}
+
+function CustomModal({ header, children, actionBtnMessage, handleAction }) {
+  return (
+    <div data-theme="light">
+      <input type="checkbox" id="my-modal-4" className="modal-toggle" />
+      <label htmlFor="my-modal-4" className="modal cursor-pointer">
+        <label className="modal-box relative" htmlFor="">
+          <h3 className="text-lg font-bold px-4">{header}</h3>
+          <div className="w-full bg-gray-200 p-4">{children}</div>
+          <div className="float-right flex gap-2 px-2 pt-2">
+            <label htmlFor="my-modal-4" className="btn modal-button">
+              Cancel
+            </label>
+            <label htmlFor="my-modal-4" className="btn modal-button btn-error" onClick={(_) => handleAction()}>
+              {actionBtnMessage}
+            </label>
+          </div>
+        </label>
+      </label>
     </div>
   )
 }
