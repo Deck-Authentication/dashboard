@@ -30,7 +30,6 @@ export default function Template({ id, BACKEND_URL }) {
   const [isGoogleDrawerOpen, setGoogleDrawerOpen] = useState(false)
   const [isAtlassianDrawerOpen, setAtlassianDrawerOpen] = useState(false)
   const [isMemberDrawerOpen, setMemberDrawerOpen] = useState(false)
-  const [isAddUserBtnLoading, setAddUserBtnLoading] = useState(false)
   const [context] = useAppContext()
   // const [slackChannels, setSlackChannels] = useState([])
   // const [googleGroupKeys, setGoogleGroupKeys] = useState([])

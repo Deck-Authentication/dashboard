@@ -31,7 +31,4 @@ const handlers = handleAuth({
   },
 })
 
-console.log("handlers: ", handlers)
-
 export default handlers
-// export default handleAuth()
