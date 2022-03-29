@@ -106,7 +106,10 @@ export default function Templates({ BACKEND_URL }) {
   return (
     <div id="template" className="w-full p-5">
       <div className="w-full flex flex-row justify-end">
-        <label htmlFor="add-template-modal" className="modal-button pill-btn cursor-pointer normal-case p-1 hover:opacity-90">
+        <label
+          htmlFor="add-template-modal"
+          className="modal-button pill-btn bg-indigo-600 cursor-pointer normal-case p-1 hover:opacity-90"
+        >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
             <path
               fillRule="evenodd"
